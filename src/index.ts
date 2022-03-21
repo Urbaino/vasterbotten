@@ -3,14 +3,21 @@ import { token } from '../config.json';
 import { Client, Intents } from 'discord.js';
 import { register } from './register';
 import handlers from './handlers';
+import InMemoryPretenderService from './services/inMemoryPretenderService';
 
 // Create a new client instance
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
 // When the client is ready, run this code (only once)
 client.once('ready', async () => {
-    console.log('Registering commands');
-    await register();
+    // console.log('Registering commands');
+    // await register();
+
+    console.log('Seeding database for testing!');
+    InMemoryPretenderService.submitPretender('mar')
+    InMemoryPretenderService.submitPretender('pan')
+    console.log(await InMemoryPretenderService.pending())
+
     console.log('Ready!');
 });
 

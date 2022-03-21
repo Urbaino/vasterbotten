@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction, MessageActionRow } from 'discord.js';
-import { CommandHandler } from '../../types/commandHandler';
+import { CommandHandler } from '../types/commandHandler';
 import selectNation from './selectNation';
 
 const dominions: CommandHandler = {
@@ -10,7 +10,7 @@ const dominions: CommandHandler = {
     execute: async (interaction: CommandInteraction) => {
 
         const nationRow = new MessageActionRow()
-            .addComponents(selectNation.component);
+            .addComponents(await selectNation.component());
 
         await interaction.reply({ content: 'Dominions command received! Providing example!', components: [nationRow], ephemeral: true });
     }

@@ -3,5 +3,5 @@ import { MessageActionRowComponent, MessageComponentInteraction } from "discord.
 export interface MessageComponentHandler {
     customId: string,
     execute: (interaction: MessageComponentInteraction) => Promise<void>,
-    component: MessageActionRowComponent
+    component: () => Promise<MessageActionRowComponent>
 }

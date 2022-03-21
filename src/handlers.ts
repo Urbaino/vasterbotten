@@ -1,6 +1,6 @@
 import { Collection } from "discord.js";
-import { CommandHandler } from "../types/commandHandler";
-import { MessageComponentHandler } from "../types/messageComponentHandler";
+import { CommandHandler } from "./types/commandHandler";
+import { MessageComponentHandler } from "./types/messageComponentHandler";
 import dominions from "./dominions/dominions";
 import notPlaying from "./dominions/notPlaying";
 import selectNation from "./dominions/selectNation";
