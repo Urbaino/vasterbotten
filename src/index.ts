@@ -18,6 +18,7 @@ client.on('interactionCreate', async interaction => {
     if (!interaction.isCommand()) return;
 
     const command = commands.get(interaction.commandName);
+    console.debug(new Date(), ' - ', interaction.user.username, ' - ', interaction.commandName);
 
     if (!command) return;
 
@@ -33,5 +34,8 @@ client.on('interactionCreate', async interaction => {
 client.login(token);
 
 process.on('SIGINT', () => {
-    console.log('Process terminating.')
+    console.log('Process terminating, signing out...')
+    client.destroy();
+    console.log('Signed out!')
+    process.exit(0)
 })
