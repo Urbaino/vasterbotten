@@ -2,7 +2,7 @@
 import { token } from '../config.json';
 import { Client, Intents } from 'discord.js';
 import { register } from './register';
-import commands from './commands';
+import handlers from './handlers';
 
 // Create a new client instance
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
@@ -17,8 +17,8 @@ client.once('ready', async () => {
 client.on('interactionCreate', async interaction => {
     if (!interaction.isCommand()) return;
 
-    const command = commands.get(interaction.commandName);
-    console.debug(new Date(), ' - ', interaction.user.username, ' - ', interaction.commandName);
+    const command = handlers.commands.get(interaction.commandName);
+    console.debug(new Date(), ':', interaction.user.username, ':', interaction.commandName);
 
     if (!command) return;
 
@@ -27,6 +27,22 @@ client.on('interactionCreate', async interaction => {
     } catch (error) {
         console.error(error);
         await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+    }
+});
+
+client.on('interactionCreate', async interaction => {
+    if (!interaction.isMessageComponent()) return;
+
+    const command = handlers.messageComponents.get(interaction.customId);
+    console.debug(new Date(), ':', interaction.user.username, ':', interaction.customId);
+
+    if (!command) return;
+
+    try {
+        await command.execute(interaction);
+    } catch (error) {
+        console.error(error);
+        await interaction.reply({ content: 'There was an error while executing this message component!', ephemeral: true });
     }
 });
 

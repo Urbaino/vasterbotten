@@ -1,7 +1,7 @@
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
 import { token, clientId, guildId } from '../config.json';
-import commands from './commands';
+import handlers from './handlers';
 
 const rest = new REST({ version: '9' }).setToken(token);
 
@@ -11,7 +11,7 @@ export const register = async () => {
 
         await rest.put(
             Routes.applicationGuildCommands(clientId, guildId),
-            { body: commands.map(c => c.data.toJSON()) },
+            { body: handlers.commands.map(c => c.data.toJSON()) },
         );
 
         console.log('Successfully reloaded application (/) commands.');
