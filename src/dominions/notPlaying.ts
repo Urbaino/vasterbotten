@@ -1,16 +1,16 @@
 import { MessageButton, MessageComponentInteraction } from 'discord.js';
 import { MessageButtonStyles } from 'discord.js/typings/enums';
-import InMemoryPretenderService from '../services/inMemoryPretenderService';
 import { MessageComponentHandler } from '../types/messageComponentHandler';
+import { PretenderService } from '../types/pretenderService';
 
 const customId = 'notPlaying';
 
 const notPlaying: MessageComponentHandler = {
     customId,
-    execute: async (interaction: MessageComponentInteraction) => {
+    execute: async (interaction: MessageComponentInteraction, service: PretenderService) => {
         if (!interaction.isButton()) return;
 
-        InMemoryPretenderService.unclaim(interaction.user.username);
+        service.unclaim(interaction.user.username);
 
         await interaction.update({ content: `Du har lämnat spelet.`, components: [] });
     },

@@ -1,5 +1,5 @@
-import { ReadStatus } from './services/statusDumpService'
+import StatusService from './services/statusDumpService'
 
-ReadStatus('/workspaces/vasterbotten/statusdumps/pending').then(
+new StatusService('/workspaces/vasterbotten/statusdumps/pending').ReadStatus().then(
     status => console.log(status)
 )

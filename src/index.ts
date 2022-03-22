@@ -1,23 +1,23 @@
 // Require the necessary discord.js classes
-import { token } from '../config.json';
+import { token, saveGameDir } from '../config.json';
 import { Client, Intents } from 'discord.js';
 import { register } from './register';
 import handlers from './handlers';
 import InMemoryPretenderService from './services/inMemoryPretenderService';
+import StatusDumpService from './services/statusDumpService';
 
 // Create a new client instance
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
+
+// Dominions Service
+const pretenderService = new InMemoryPretenderService(new StatusDumpService(saveGameDir));
 
 // When the client is ready, run this code (only once)
 client.once('ready', async () => {
     // console.log('Registering commands');
     // await register();
 
-    console.log('Seeding database for testing!');
-    InMemoryPretenderService.submitPretender('mar')
-    InMemoryPretenderService.submitPretender('pan')
-    console.log(await InMemoryPretenderService.pending())
-
+    await pretenderService.init();
     console.log('Ready!');
 });
 
@@ -30,7 +30,7 @@ client.on('interactionCreate', async interaction => {
     if (!command) return;
 
     try {
-        await command.execute(interaction);
+        await command.execute(interaction, pretenderService);
     } catch (error) {
         console.error(error);
         await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
@@ -46,7 +46,7 @@ client.on('interactionCreate', async interaction => {
     if (!command) return;
 
     try {
-        await command.execute(interaction);
+        await command.execute(interaction, pretenderService);
     } catch (error) {
         console.error(error);
         await interaction.reply({ content: 'There was an error while executing this message component!', ephemeral: true });
