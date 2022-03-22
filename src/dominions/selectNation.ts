@@ -1,7 +1,6 @@
-import { MessageActionRow, MessageComponentInteraction, MessageSelectMenu } from 'discord.js';
+import { MessageComponentInteraction, MessageSelectMenu } from 'discord.js';
 import { MessageComponentHandler } from '../types/messageComponentHandler';
 import { PretenderService } from '../types/pretenderService';
-import notPlaying from './notPlaying';
 
 const customId = 'selectNation';
 
@@ -19,9 +18,7 @@ const selectNation: MessageComponentHandler = {
         }
     },
     component: async (service: PretenderService) => {
-        const pending = (await service.pending())
-        console.log('pending', pending)
-        const nations = pending.map(nation => ({ label: nation, value: nation }))
+        const nations = (await service.status()).pending().map(nation => ({ label: nation.id, value: nation.name }))
         return new MessageSelectMenu()
             .setCustomId(customId)
             .setPlaceholder('Välj nation')
