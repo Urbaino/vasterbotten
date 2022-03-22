@@ -14,8 +14,8 @@ const pretenderService = new InMemoryPretenderService(new StatusDumpService(save
 
 // When the client is ready, run this code (only once)
 client.once('ready', async () => {
-    console.log('Registering commands');
-    await register();
+    // console.log('Registering commands');
+    // await register();
 
     console.log('Ready!');
 });
