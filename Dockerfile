@@ -6,4 +6,4 @@ COPY out/ .
 COPY node_modules/ node_modules/
 RUN chown -R node /usr/src/app
 USER node
-CMD ["node", "src/index.js"]
+CMD ["node", "index.js"]

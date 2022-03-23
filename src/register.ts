@@ -1,6 +1,6 @@
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
-import { token, clientId, guildId } from '../config.json';
+import { token, clientId, guildId } from './config.json';
 import handlers from './handlers';
 
 const rest = new REST({ version: '9' }).setToken(token);

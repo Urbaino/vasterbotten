@@ -1,5 +1,5 @@
 // Require the necessary discord.js classes
-import { token, saveGameDir } from '../config.json';
+import { token, saveGameDir } from './config.json';
 import { Client, Intents } from 'discord.js';
 import { register } from './register';
 import handlers from './handlers';

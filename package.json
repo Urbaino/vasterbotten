@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "cd out; node src/index.js",
-    "prestart": "tsc --outdir out",
+    "prestart": "rm -rf out && tsc --outdir out",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Urbaino",
