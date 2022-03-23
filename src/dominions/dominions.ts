@@ -1,4 +1,4 @@
-import { codeBlock, SlashCommandBuilder } from '@discordjs/builders';
+import { bold, codeBlock, SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction, InteractionReplyOptions, MessageActionRow } from 'discord.js';
 import { CommandHandler } from '../types/commandHandler';
 import { PretenderService } from '../types/pretenderService';
@@ -16,7 +16,7 @@ const dominions: CommandHandler = {
         const currentPlayers = status.claimed().map(n => `${n.player}: ${n.name}, ${n.tagline}`);
         const playerNation = status.claimed().find(n => n.player === interaction.user.username);
         const pendingNations = status.pending().map(n => `${n.name}, ${n.tagline}`);
-        const unfinishedPlayers = status.unfinished().map(n => `${n.player} (${n.name}, ${n.tagline})`);
+        const unfinishedPlayers = status.unfinished().map(n => `${n.player ?? 'Okänd'} (${n.name}, ${n.tagline})`);
 
         const nationSelectReply: () => Promise<InteractionReplyOptions> = async () => {
             const nationRow = new MessageActionRow().addComponents(await selectNation.component(service));
@@ -29,7 +29,7 @@ const dominions: CommandHandler = {
 
         const gameStatusReply: () => InteractionReplyOptions = () => {
             return {
-                content: `Runda ${status.turn}, vi väntar på:\n${unfinishedPlayers.join('\n')}`,
+                content: `${bold(`Runda ${status.turn}`)}.\nVi väntar på:\n${codeBlock(unfinishedPlayers.join('\n'))}`,
                 components: [],
                 ephemeral: true
             };
