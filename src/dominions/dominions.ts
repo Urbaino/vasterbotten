@@ -1,6 +1,8 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { CommandInteraction, MessageActionRow } from 'discord.js';
+import { CommandInteraction, InteractionReplyOptions, MessageActionRow } from 'discord.js';
+import Status from '../services/status';
 import { CommandHandler } from '../types/commandHandler';
+import { Nation } from '../types/nation';
 import { PretenderService } from '../types/pretenderService';
 import notPlaying from './notPlaying';
 import selectNation from './selectNation';
@@ -11,45 +13,68 @@ const dominions: CommandHandler = {
         .setDescription('Här hanterar du ditt deltagande i vår egna Dominions-server.'),
     execute: async (interaction: CommandInteraction, service: PretenderService) => {
 
-        var status = await service.status();
+        const status = await service.status()
 
-        if (status.turn < 0) {
-            const pretenders = status.claimed()
-            const currentPlayers = pretenders.map(n => `${n.player}: ${n.name}`)
-            let playerNation = pretenders.find(n => n.player === interaction.user.username)
-            if (playerNation) {
-                const pending = status.pending().map(n => n.name);
-                // const buttonRow = new MessageActionRow().addComponents(await notPlaying.component(service))
-                await interaction.reply({
-                    content: `Du spelar som ${playerNation.name}.\n\nValda pretenders:\n${currentPlayers.length ? currentPlayers.join('\n* ') : 'Inga'}\n\nKvar att välja:\n${pending.length ? pending.join('\n') : 'Inga!'}`,
-                    // components: [buttonRow], 
-                    ephemeral: true
-                });
-            } else {
-                if (status.pending().length) {
-                    const nationRow = new MessageActionRow().addComponents(await selectNation.component(service));
-                    await interaction.reply({
-                        content: `Välj din nation${currentPlayers.join('\n')}`,
-                        components: [nationRow],
-                        ephemeral: true
-                    });
-                }
-                else {
-                    await interaction.reply({
-                        content: `Ingen har laddat upp en pretender ännu, du kan inte välja nation.`,
-                        components: [],
-                        ephemeral: true
-                    });
-                }
-            }
+        const currentPlayers = status.claimed().map(n => `${n.player}: ${n.name}`);
+        const playerNation = status.claimed().find(n => n.player === interaction.user.username);
+        const pendingNations = status.pending().map(n => n.name);
+        const unfinishedPlayers = status.unfinished().map(n => n.player);
+
+        const nationSelectReply: () => Promise<InteractionReplyOptions> = async () => {
+            const nationRow = new MessageActionRow().addComponents(await selectNation.component(service));
+            return {
+                content: `Välj din nation${currentPlayers.join('\n')}`,
+                components: [nationRow],
+                ephemeral: true
+            };
         }
-        else {
-            const unfinishedPlayers = status.unfinished().map(n => n.player)
-            await interaction.reply({
+
+        const gameStatusReply: () => InteractionReplyOptions = () => {
+            return {
                 content: `Runda ${status.turn}, vi väntar på:\n${unfinishedPlayers.join('\n')}`,
                 components: [],
                 ephemeral: true
-            });
+            };
+        }
+
+        const noAvailablePretendersReply: () => InteractionReplyOptions = () => {
+            return {
+                content: `Det finns inga lediga pretenders. Ladda upp en ny för att välja nation. `,
+                components: [],
+                ephemeral: true
+            }
+        }
+
+        const awaitingStartReply: () => InteractionReplyOptions = () => {
+            // const buttonRow = new MessageActionRow().addComponents(await notPlaying.component(service))
+            return {
+                content: `Du spelar som ${playerNation?.name}.\n\nValda pretenders:\n${currentPlayers.length ? currentPlayers.join('\n* ') : 'Inga'}\n\nKvar att välja:\n${pendingNations.length ? pendingNations.join('\n') : 'Inga!'}`,
+                // components: [buttonRow], 
+                ephemeral: true
+            };
+        }
+
+        if (playerNation) {
+            if (status.turn < 0) {
+                await interaction.reply(awaitingStartReply());
+            }
+            else {
+                await interaction.reply(gameStatusReply());
+            }
+        }
+        else {
+            if (status.pending().length) {
+                await interaction.reply(await nationSelectReply());
+            }
+            else {
+                if (status.turn < 0) {
+                    await interaction.reply(noAvailablePretendersReply());
+                }
+                else {
+                    await interaction.reply(gameStatusReply());
+                }
+            }
+
         }
     }
 };
