@@ -12,15 +12,15 @@ const selectNation: MessageComponentHandler = {
         const value = interaction.values[0]
 
         if (await service.claim(value, interaction.user.username)) {
-            const name = (await service.status()).nations.find(n => n.id === value)?.name
-            await interaction.update({ content: `Du spelar som ${name}.`, components: [] });
+            const nation = (await service.status()).nations.find(n => n.id === value)
+            await interaction.update({ content: `Du spelar som ${nation?.name}, ${nation?.tagline}.`, components: [] });
         }
         else {
             await interaction.update({ content: `Någonting gick fel.`, components: [] });
         }
     },
     component: async (service: PretenderService) => {
-        const nations = (await service.status()).pending().map(nation => ({ label: nation.name, value: nation.id }))
+        const nations = (await service.status()).pending().map(nation => ({ label: `${nation.name}, ${nation.tagline}`, value: nation.id }))
         return new MessageSelectMenu()
             .setCustomId(customId)
             .setPlaceholder('Välj nation')

@@ -56,7 +56,14 @@ client.on('interactionCreate', async interaction => {
 client.login(token);
 
 process.on('SIGINT', () => {
-    console.log('Process terminating, signing out...')
+    console.log('Process interrupted, signing out...')
+    client.destroy();
+    console.log('Signed out!')
+    process.exit(0)
+})
+
+process.on('SIGTERM', () => {
+    console.log('Process terminated, signing out...')
     client.destroy();
     console.log('Signed out!')
     process.exit(0)

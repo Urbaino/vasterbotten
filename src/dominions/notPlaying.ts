@@ -10,13 +10,17 @@ const notPlaying: MessageComponentHandler = {
     execute: async (interaction: MessageComponentInteraction, service: PretenderService) => {
         if (!interaction.isButton()) return;
 
-        service.unclaim(interaction.user.username);
-
-        await interaction.update({ content: `Du har lämnat spelet.`, components: [] });
+        if ((await service.status()).turn > 0) {
+            await interaction.update({ content: `Du kan inte lämna spelet när det har startat.`, components: [] });
+        }
+        else {
+            service.unclaim(interaction.user.username);
+            await interaction.update({ content: `Du har lämnat spelet.`, components: [] });
+        }
     },
     component: async () => new MessageButton()
         .setCustomId(customId)
-        .setLabel('Ta bort mig från spelet')
+        .setLabel('Lämna spelet')
         .setStyle(MessageButtonStyles.DANGER)
 };
 
