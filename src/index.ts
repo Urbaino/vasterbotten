@@ -10,12 +10,15 @@ import StatusDumpService from './services/statusDumpService';
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
 // Dominions Service
-const pretenderService = new InMemoryPretenderService(new StatusDumpService(saveGameDir));
+const statusService = new StatusDumpService(saveGameDir);
+const pretenderService = new InMemoryPretenderService(statusService);
 
 // When the client is ready, run this code (only once)
 client.once('ready', async () => {
     // console.log('Registering commands');
     // await register();
+
+    statusService.BeginMonitor();
 
     console.log('Ready!');
 });
@@ -55,16 +58,21 @@ client.on('interactionCreate', async interaction => {
 // Login to Discord with your client's token
 client.login(token);
 
-process.on('SIGINT', () => {
-    console.log('Process interrupted, signing out...')
+// Shut down gracefully
+const dispose = () => {
     client.destroy();
     console.log('Signed out!')
+    statusService.EndMonitor();
+}
+
+process.on('SIGINT', () => {
+    console.log('Process interrupted, signing out...')
+    dispose();
     process.exit(0)
 })
 
 process.on('SIGTERM', () => {
     console.log('Process terminated, signing out...')
-    client.destroy();
-    console.log('Signed out!')
+    dispose();
     process.exit(0)
 })

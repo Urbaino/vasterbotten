@@ -26,7 +26,8 @@ export default class InMemoryPretenderService implements PretenderService {
         return true;
     }
 
-    async status() {
-        return new Status(await this.statusService.ReadStatus(), this.nations);
+    status() {
+        if (!this.statusService.Status) return null
+        return new Status(this.statusService.Status, this.nations);
     }
 }

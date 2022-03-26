@@ -1,6 +1,7 @@
 import { MessageComponentInteraction, MessageSelectMenu } from 'discord.js';
-import { MessageComponentHandler } from '../types/messageComponentHandler';
-import { PretenderService } from '../types/pretenderService';
+import { MessageComponentHandler } from '../../types/messageComponentHandler';
+import { PretenderService } from '../../types/pretenderService';
+import awaitingStart from '../replies/awaitingStart';
 
 const customId = 'selectNation';
 
@@ -12,15 +13,14 @@ const selectNation: MessageComponentHandler = {
         const value = interaction.values[0]
 
         if (await service.claim(value, interaction.user.username)) {
-            const nation = (await service.status()).nations.find(n => n.id === value)
-            await interaction.update({ content: `Du spelar som ${nation?.name}, ${nation?.tagline}.`, components: [] });
+            await interaction.update(await awaitingStart(service));
+            return;
         }
-        else {
-            await interaction.update({ content: `Någonting gick fel.`, components: [] });
-        }
+
+        await interaction.update({ content: `Någonting gick fel.`, components: [] });
     },
     component: async (service: PretenderService) => {
-        const nations = (await service.status()).pending().map(nation => ({ label: `${nation.name}, ${nation.tagline}`, value: nation.id }))
+        const nations = service.status()?.pending().map(nation => ({ label: `${nation.name}, ${nation.tagline}`, value: nation.id })) ?? []
         return new MessageSelectMenu()
             .setCustomId(customId)
             .setPlaceholder('Välj nation')

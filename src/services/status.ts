@@ -17,6 +17,10 @@ export default class Status {
 
     pending() { return this.nations.filter(n => n.submitted && !n.player); }
     claimed() { return this.nations.filter(n => !!n.player); }
-
     unfinished() { return this.nations.filter(n => n.turnStatus !== TurnStatus.Finished); }
+    playerNation(username: string) { return this.claimed().find(n => n.player === username); }
+
+    currentPlayers() { return this.claimed().map(n => `${n.player}: ${n.name}, ${n.tagline}`); }
+    pendingNations() { return this.pending().map(n => `${n.name}, ${n.tagline}`); }
+    unfinishedPlayers() { return this.unfinished().map(n => `${n.player ?? 'Okänd'} (${n.name}, ${n.tagline})`); }
 }

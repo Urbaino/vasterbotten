@@ -5,12 +5,14 @@ import { StatusDump } from '../types/statusDump'
 
 export default class StatusDumpService {
     private dir: string;
+    private timer?: NodeJS.Timer;
+    private status?: StatusDump | undefined;
 
     constructor(dir: string) {
         this.dir = dir;
     }
 
-    async ReadStatus(): Promise<StatusDump> {
+    private async ReadStatus(): Promise<StatusDump> {
         const statusfilePath = path.join(this.dir, 'statusdump.txt')
         const file = await fsp.readFile(statusfilePath, { encoding: 'utf8' })
 
@@ -37,5 +39,19 @@ export default class StatusDumpService {
             })
         }
         return statusdump;
+    }
+
+    public get Status(): StatusDump | undefined {
+        return this.status;
+    }
+
+    BeginMonitor() {
+        this.timer = setInterval(() => this.ReadStatus().then(s => this.status = s), 5000)
+        console.log(`Monitoring statusdump in ${this.dir}`);
+    }
+
+    EndMonitor() {
+        this.timer && clearInterval(this.timer)
+        console.log(`Stopped monitoring statusdump in ${this.dir}`);
     }
 }

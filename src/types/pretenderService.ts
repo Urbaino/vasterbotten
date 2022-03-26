@@ -6,5 +6,5 @@ export type Player = string
 export interface PretenderService {
     claim: (nation: Nation['id'], player: Player) => Promise<boolean>,
     unclaim: (player: Player) => Promise<boolean>,
-    status: () => Promise<Status>,
+    status: () => Status | null,
 }

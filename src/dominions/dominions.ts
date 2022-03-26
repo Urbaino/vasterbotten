@@ -1,9 +1,12 @@
-import { bold, codeBlock, SlashCommandBuilder } from '@discordjs/builders';
-import { CommandInteraction, InteractionReplyOptions, MessageActionRow } from 'discord.js';
+import { SlashCommandBuilder } from '@discordjs/builders';
+import { CommandInteraction } from 'discord.js';
 import { CommandHandler } from '../types/commandHandler';
 import { PretenderService } from '../types/pretenderService';
-import notPlaying from './notPlaying';
-import selectNation from './selectNation';
+import awaitingStart from './replies/awaitingStart';
+import gameStatus from './replies/gameStatus';
+import nationSelect from './replies/nationSelect';
+import noAvailablePretenders from './replies/noAvailablePretenders';
+import noGameLoaded from './replies/noGameLoaded';
 
 const dominions: CommandHandler = {
     data: new SlashCommandBuilder()
@@ -11,65 +14,31 @@ const dominions: CommandHandler = {
         .setDescription('Här hanterar du ditt deltagande i vår egna Dominions-server.'),
     execute: async (interaction: CommandInteraction, service: PretenderService) => {
 
-        const status = await service.status()
+        const status = service.status()
 
-        const currentPlayers = status.claimed().map(n => `${n.player}: ${n.name}, ${n.tagline}`);
-        const playerNation = status.claimed().find(n => n.player === interaction.user.username);
-        const pendingNations = status.pending().map(n => `${n.name}, ${n.tagline}`);
-        const unfinishedPlayers = status.unfinished().map(n => `${n.player ?? 'Okänd'} (${n.name}, ${n.tagline})`);
-
-        const nationSelectReply: () => Promise<InteractionReplyOptions> = async () => {
-            const nationRow = new MessageActionRow().addComponents(await selectNation.component(service));
-            return {
-                content: `Välj din nation${currentPlayers.join('\n')}`,
-                components: [nationRow],
-                ephemeral: true
-            };
+        if (!status) {
+            await interaction.reply(await noGameLoaded());
+            return;
         }
 
-        const gameStatusReply: () => InteractionReplyOptions = () => {
-            return {
-                content: `${bold(`Runda ${status.turn}`)}.\nVi väntar på:\n${codeBlock(unfinishedPlayers.join('\n'))}`,
-                components: [],
-                ephemeral: true
-            };
-        }
-
-        const noAvailablePretendersReply: () => InteractionReplyOptions = () => {
-            return {
-                content: `Det finns inga lediga pretenders. Ladda upp en ny för att välja nation. `,
-                components: [],
-                ephemeral: true
-            }
-        }
-
-        const awaitingStartReply: () => Promise<InteractionReplyOptions> = async () => {
-            const buttonRow = new MessageActionRow().addComponents(await notPlaying.component(service))
-            return {
-                content: `Du spelar som ${playerNation?.name}.\n\nValda pretenders:\n${currentPlayers.length ? codeBlock(currentPlayers.join('\n')) : 'Inga'}\nKvar att välja:\n${pendingNations.length ? codeBlock(pendingNations.join('\n')) : 'Inga!'}`,
-                components: [buttonRow],
-                ephemeral: true
-            };
-        }
-
-        if (playerNation) {
+        if (status.playerNation(interaction.user.username)) {
             if (status.turn < 0) {
-                await interaction.reply(await awaitingStartReply());
+                await interaction.reply(await awaitingStart(service));
             }
             else {
-                await interaction.reply(gameStatusReply());
+                await interaction.reply(await gameStatus(service));
             }
         }
         else {
             if (status.pending().length) {
-                await interaction.reply(await nationSelectReply());
+                await interaction.reply(await nationSelect(service));
             }
             else {
                 if (status.turn < 0) {
-                    await interaction.reply(noAvailablePretendersReply());
+                    await interaction.reply(await noAvailablePretenders(service));
                 }
                 else {
-                    await interaction.reply(gameStatusReply());
+                    await interaction.reply(await gameStatus(service));
                 }
             }
 
