@@ -9,7 +9,7 @@ class DmService {
 
     async SendDm(userId: UserResolvable, message: string) {
         const user = await this.client.users.fetch(userId);
-        user.send(message);
+        await user.send(message);
     }
 }
 

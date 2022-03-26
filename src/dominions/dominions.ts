@@ -23,7 +23,7 @@ const dominions: CommandHandler = {
 
         if (status.playerNation(interaction.user.username)) {
             if (status.turn < 0) {
-                await interaction.reply(await awaitingStart(service));
+                await interaction.reply(await awaitingStart(interaction, service));
             }
             else {
                 await interaction.reply(await gameStatus(service));

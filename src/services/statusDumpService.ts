@@ -8,28 +8,30 @@ export type StatusEvent = 'newTurn'
 
 export default class StatusDumpService {
     private dir: string;
+    private statusfilePath: string;
     private timer?: NodeJS.Timer;
     private status?: StatusDump | undefined;
+
     private events = new EventEmitter();
 
     constructor(dir: string) {
         this.dir = dir;
+        this.statusfilePath = path.join(this.dir, 'statusdump.txt')
     }
 
     private async ReadStatus(): Promise<StatusDump> {
-        const statusfilePath = path.join(this.dir, 'statusdump.txt')
-        const file = await fsp.readFile(statusfilePath, { encoding: 'utf8' })
+        const file = await fsp.readFile(this.statusfilePath, { encoding: 'utf8' })
 
         const lines = file.split('\n')
-        var statusdump: StatusDump = {
+        let statusdump: StatusDump = {
             gameName: lines[0].match(/Status for \'(.*)\'/)?.at(1) ?? '',
             turn: Number.parseInt(lines[1].match(/turn (-?\d+)/)?.at(1) ?? ''),
             nations: []
         }
 
-        for (var i = 2; i < lines.length; ++i) {
+        for (let i = 2; i < lines.length; ++i) {
             if (lines[i].length === 0) continue;
-            var data = lines[i].split('\t');
+            let data = lines[i].split('\t');
             statusdump.nations.push({
                 nationNumber: Number.parseInt(data[1]),
                 pretenderNumber: Number.parseInt(data[2]),
@@ -46,6 +48,7 @@ export default class StatusDumpService {
     }
 
     private SetStatus(status: StatusDump | undefined) {
+        // console.debug(new Date(), ':', 'Status updated');
         this.status = status;
     }
 
@@ -58,10 +61,13 @@ export default class StatusDumpService {
         this.events.addListener(event, listener);
     }
 
-    private RaiseEvent(event: StatusEvent, status: StatusDump) { this.events.emit(event, status) }
+    private RaiseEvent(event: StatusEvent, status: StatusDump) {
+        console.debug(new Date(), ':', 'event', ':', event);
+        this.events.emit(event, status)
+    }
 
     private ProcessEvents(newStatus: StatusDump) {
-        if (!this.status || !newStatus) return;
+        if (!this.status || !newStatus) return newStatus;
         if (this.status.turn !== newStatus.turn) this.RaiseEvent('newTurn', newStatus)
         return newStatus
     }

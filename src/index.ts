@@ -5,13 +5,19 @@ import { register } from './register';
 import handlers from './handlers';
 import InMemoryPretenderService from './services/inMemoryPretenderService';
 import StatusDumpService from './services/statusDumpService';
+import DmService from './services/dmService';
+import NewTurnService from './services/newTurnService';
 
 // Create a new client instance
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
+// Helper services
+const dmService = new DmService(client);
+
 // Dominions Service
 const statusService = new StatusDumpService(saveGameDir);
 const pretenderService = new InMemoryPretenderService(statusService);
+const newTurnService = new NewTurnService(statusService, pretenderService, dmService);
 
 // When the client is ready, run this code (only once)
 client.once('ready', async () => {
