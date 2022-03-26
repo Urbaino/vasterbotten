@@ -67,7 +67,7 @@ export default class StatusDumpService {
     }
 
     BeginMonitor() {
-        this.timer = setInterval(() => this.ReadStatus().then(this.ProcessEvents).then(this.SetStatus), 5000)
+        this.timer = setInterval(() => this.ReadStatus().then(this.ProcessEvents.bind(this)).then(this.SetStatus.bind(this)), 5000)
         console.log(`Monitoring statusdump in ${this.dir}`);
     }
 
