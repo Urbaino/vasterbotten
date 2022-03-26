@@ -12,7 +12,7 @@ const selectNation: MessageComponentHandler = {
         if (interaction.values.length !== 1) return;
         const value = interaction.values[0]
 
-        if (await service.claim(value, interaction.user.username)) {
+        if (await service.claim(value, interaction.user)) {
             await interaction.update(await awaitingStart(service));
             return;
         }

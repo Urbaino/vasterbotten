@@ -1,6 +1,7 @@
 import { Collection } from "discord.js";
 import { Nation } from "../types/nation";
 import { PretenderService, Player } from "../types/pretenderService";
+import { StatusDump } from "../types/statusDump";
 import Status from "./status";
 import StatusDumpService from "./statusDumpService";
 
@@ -30,4 +31,9 @@ export default class InMemoryPretenderService implements PretenderService {
         if (!this.statusService.Status) return null
         return new Status(this.statusService.Status, this.nations);
     }
+
+    statusFromDump(statusDump: StatusDump) {
+        return new Status(statusDump, this.nations);
+    }
+
 }

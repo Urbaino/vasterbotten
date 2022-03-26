@@ -2,11 +2,15 @@ import fs from 'fs'
 import fsp from 'fs/promises'
 import path from 'path'
 import { StatusDump } from '../types/statusDump'
+import EventEmitter from 'events'
+
+export type StatusEvent = 'newTurn'
 
 export default class StatusDumpService {
     private dir: string;
     private timer?: NodeJS.Timer;
     private status?: StatusDump | undefined;
+    private events = new EventEmitter();
 
     constructor(dir: string) {
         this.dir = dir;
@@ -41,12 +45,29 @@ export default class StatusDumpService {
         return statusdump;
     }
 
+    private SetStatus(status: StatusDump | undefined) {
+        this.status = status;
+    }
+
     public get Status(): StatusDump | undefined {
         return this.status;
     }
 
+
+    Subscribe(event: StatusEvent, listener: (status: StatusDump) => void) {
+        this.events.addListener(event, listener);
+    }
+
+    private RaiseEvent(event: StatusEvent, status: StatusDump) { this.events.emit(event, status) }
+
+    private ProcessEvents(newStatus: StatusDump) {
+        if (!this.status || !newStatus) return;
+        if (this.status.turn !== newStatus.turn) this.RaiseEvent('newTurn', newStatus)
+        return newStatus
+    }
+
     BeginMonitor() {
-        this.timer = setInterval(() => this.ReadStatus().then(s => this.status = s), 5000)
+        this.timer = setInterval(() => this.ReadStatus().then(this.ProcessEvents).then(this.SetStatus), 5000)
         console.log(`Monitoring statusdump in ${this.dir}`);
     }
 
