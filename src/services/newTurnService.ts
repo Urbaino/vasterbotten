@@ -25,7 +25,7 @@ export default class NewTurnService {
 
     private NotifyNewTurn(statusDump: StatusDump) {
         let status = this.pretenderService.statusFromDump(statusDump)
-        for (let player of status.nations.map(n => n.player)) {
+        for (let player of status.claimed().map(n => n.player)) {
             this.dmService.SendDm(player.id, `Ny runda! Runda ${status.turn} har börjat, ${this.messages[Math.floor(Math.random() * this.messages.length)]}`)
         }
     }

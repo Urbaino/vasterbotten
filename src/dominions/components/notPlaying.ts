@@ -21,7 +21,7 @@ const notPlaying: MessageComponentHandler = {
             return
         }
 
-        service.unclaim(interaction.user.username);
+        service.unclaim(interaction.user);
         await interaction.update({ content: `Du har lämnat spelet.`, components: [] });
     },
     component: async () => new MessageButton()

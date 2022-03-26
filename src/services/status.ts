@@ -15,8 +15,12 @@ export default class Status {
         this.nations = statusDump.nations.map(n => ({ ...n, player: pretenders.get(n.id) ?? null }));
     }
 
-    pending() { return this.nations.filter(n => n.submitted && !n.player); }
-    claimed() { return this.nations.filter(n => !!n.player); }
+    private NationHasPlayer(nation: Nation & { player: Player | null }): nation is (Nation & { player: Player }) {
+        return nation.player !== null
+    }
+
+    pending(): Nation[] { return this.nations.filter(n => n.submitted && !n.player); }
+    claimed() { return this.nations.filter(this.NationHasPlayer); }
     unfinished() { return this.nations.filter(n => n.turnStatus !== TurnStatus.Finished); }
     playerNation(username: string) { return this.claimed().find(n => n.player?.username === username); }
 

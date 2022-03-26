@@ -21,7 +21,7 @@ export default class InMemoryPretenderService implements PretenderService {
     }
 
     async unclaim(player: Player) {
-        let nation = this.nations.findKey(p => p === player);
+        let nation = this.nations.findKey(p => p.id === player.id);
         if (!nation) return false;
         this.nations.delete(nation);
         return true;
