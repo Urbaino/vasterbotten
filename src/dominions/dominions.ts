@@ -26,7 +26,7 @@ const dominions: CommandHandler = {
                 await interaction.reply(await awaitingStart(interaction, service));
             }
             else {
-                await interaction.reply(await gameStatus(service));
+                await interaction.reply(await gameStatus(interaction, service));
             }
         }
         else {
@@ -38,7 +38,7 @@ const dominions: CommandHandler = {
                     await interaction.reply(await noAvailablePretenders(service));
                 }
                 else {
-                    await interaction.reply(await gameStatus(service));
+                    await interaction.reply(await gameStatus(interaction, service));
                 }
             }
 
