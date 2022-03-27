@@ -1,6 +1,7 @@
 import { Collection } from "discord.js";
 import fsp from 'fs/promises'
 import path from 'path'
+import { playersDir } from '../config.json'
 import { Nation } from "../types/nation";
 import { PretenderService, Player } from "../types/pretenderService";
 import { StatusDump } from "../types/statusDump";
@@ -10,21 +11,23 @@ import StatusDumpService from "./statusDumpService";
 export default class FilePretenderServiceBuilder {
 
     public static async build(statusService: StatusDumpService) {
-        let nations = await this.readFromFile(statusService.dir);
+        let nations = await this.readFromFile(statusService.Status?.gameName);
         return new FilePretenderService(statusService, nations);
     }
 
-    private static async readFromFile(dir: string): Promise<FilePretenderService['nations']> {
-        try {
-            const file = await fsp.readFile(path.join(dir, FilePretenderService.filename), { encoding: 'utf8' })
-            let players: ([Nation['id'], Player])[] = JSON.parse(file)
-            console.log("Loaded", players.length, "players");
-            return new Collection(players)
+    private static async readFromFile(gameName: string | undefined): Promise<FilePretenderService['nations']> {
+        if (gameName) {
+            try {
+                const file = await fsp.readFile(path.join(playersDir, FilePretenderService.filename(gameName)), { encoding: 'utf8' })
+                let players: ([Nation['id'], Player])[] = JSON.parse(file)
+                console.log("Loaded", players.length, "players");
+                return new Collection(players)
+            }
+            catch {
+                console.log('Could not load players');
+            }
         }
-        catch {
-            console.log('Could not load players');
-            return new Collection<Nation['id'], Player>()
-        }
+        return new Collection<Nation['id'], Player>()
     }
 }
 
@@ -32,7 +35,7 @@ class FilePretenderService implements PretenderService {
     private nations: Collection<Nation['id'], Player>
     private statusService: StatusDumpService
 
-    public static readonly filename = 'players.json'
+    public static readonly filename = (gameName: string) => `${gameName}_players.json`
 
     constructor(statusService: StatusDumpService, nations: FilePretenderService['nations']) {
         this.nations = nations;
@@ -45,7 +48,9 @@ class FilePretenderService implements PretenderService {
         for (const e of this.nations.entries()) {
             entries.push(e)
         }
-        await fsp.writeFile(path.join(this.statusService.dir, FilePretenderService.filename), JSON.stringify(entries));
+        const gameName = this.statusService.Status?.gameName
+        if (!gameName) return
+        await fsp.writeFile(path.join(playersDir, FilePretenderService.filename(gameName)), JSON.stringify(entries));
     }
 
     public async claim(nation: Nation['id'], player: Player) {

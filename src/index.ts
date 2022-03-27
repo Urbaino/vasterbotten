@@ -1,5 +1,5 @@
 // Require the necessary discord.js classes
-import Vasterbotten from './bot'
+import Vasterbotten from './vasterbotten'
 
 // Start the bot
 let bot = new Vasterbotten()

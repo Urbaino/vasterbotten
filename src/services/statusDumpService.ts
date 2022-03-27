@@ -7,8 +7,8 @@ import EventEmitter from 'events'
 export type StatusEvent = 'newTurn'
 
 export default class StatusDumpService {
-    readonly dir: string;
-    private statusfilePath: string;
+    private readonly dir: string;
+    private readonly statusfilePath: string;
     private timer?: NodeJS.Timer;
     private status?: StatusDump | undefined;
 
@@ -72,8 +72,13 @@ export default class StatusDumpService {
         return newStatus
     }
 
-    BeginMonitor() {
-        this.timer = setInterval(() => this.ReadStatus().then(this.ProcessEvents.bind(this)).then(this.SetStatus.bind(this)), 5000)
+    private async UpdateStatus() {
+        this.SetStatus(this.ProcessEvents(await this.ReadStatus()))
+    }
+
+    async BeginMonitor() {
+        await this.UpdateStatus()
+        this.timer = setInterval(this.UpdateStatus.bind(this), 5000)
         console.log(`Monitoring statusdump in ${this.dir}`);
     }
 

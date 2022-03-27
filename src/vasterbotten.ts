@@ -16,9 +16,11 @@ class Vasterbotten {
     private statusService = new StatusDumpService(saveGameDir);
 
     public async Start() {
+        // Load and monitor the game
+        await this.statusService.BeginMonitor();
+
         // Helper services
         const dmService = new DmService(this.client);
-
         const pretenderService = await FilePretenderServiceBuilder.build(this.statusService);
         const newTurnService = new NewTurnService(this.statusService, pretenderService, dmService);
 
@@ -26,8 +28,6 @@ class Vasterbotten {
         this.client.once('ready', async () => {
             // console.log('Registering commands');
             // await register();
-
-            this.statusService.BeginMonitor();
 
             console.log('Ready!');
         });
