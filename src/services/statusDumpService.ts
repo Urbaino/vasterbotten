@@ -7,7 +7,7 @@ import EventEmitter from 'events'
 export type StatusEvent = 'newTurn'
 
 export default class StatusDumpService {
-    private dir: string;
+    readonly dir: string;
     private statusfilePath: string;
     private timer?: NodeJS.Timer;
     private status?: StatusDump | undefined;
