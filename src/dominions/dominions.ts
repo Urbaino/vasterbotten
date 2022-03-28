@@ -7,6 +7,7 @@ import gameStatus from './replies/gameStatus';
 import nationSelect from './replies/nationSelect';
 import noAvailablePretenders from './replies/noAvailablePretenders';
 import noGameLoaded from './replies/noGameLoaded';
+import playerNation from './replies/playerNation';
 
 const dominions: CommandHandler = {
     data: new SlashCommandBuilder()
@@ -22,11 +23,12 @@ const dominions: CommandHandler = {
         }
 
         if (status.playerNation(interaction.user.username)) {
-            if (status.turn < 0) {
-                await interaction.reply(await awaitingStart(interaction, service));
+            await interaction.reply(await playerNation(interaction, service));
+            if (status.gameStarted()) {
+                await interaction.followUp(await gameStatus(interaction, service));
             }
             else {
-                await interaction.reply(await gameStatus(interaction, service));
+                await interaction.followUp(await awaitingStart(interaction, service));
             }
         }
         else {
@@ -34,11 +36,11 @@ const dominions: CommandHandler = {
                 await interaction.reply(await nationSelect(service));
             }
             else {
-                if (status.turn < 0) {
-                    await interaction.reply(await noAvailablePretenders(service));
+                if (status.gameStarted()) {
+                    await interaction.reply(await gameStatus(interaction, service));
                 }
                 else {
-                    await interaction.reply(await gameStatus(interaction, service));
+                    await interaction.reply(await noAvailablePretenders(service));
                 }
             }
 

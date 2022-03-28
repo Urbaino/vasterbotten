@@ -12,7 +12,7 @@ const gameStatus: (interaction: Interaction, service: PretenderService) => Promi
     return {
         content: content.join('\n'),
         components: [],
-        ephemeral: false
+        ephemeral: true
     };
 }
 

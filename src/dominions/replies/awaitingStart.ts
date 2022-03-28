@@ -26,7 +26,7 @@ const awaitingStart: (interaction: Interaction, service: PretenderService) => Pr
     return {
         content: content.join('\n'),
         components: [],
-        ephemeral: false
+        ephemeral: true
     };
 }
 
