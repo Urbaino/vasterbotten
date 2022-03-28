@@ -6,15 +6,13 @@ const gameStatus: (interaction: Interaction, service: PretenderService) => Promi
     let content = []
     content.push(bold(`${service.status()?.gameName} runda ${service.status()?.turn}.`));
 
-    content.push(`Du spelar som ${service.status()?.playerNation(interaction.user.username)?.name}.`)
-    content.push(``)
-
     content.push('Vi väntar på:')
     content.push(codeBlock(service.status()?.unfinishedPlayers().join('\n') ?? ''))
+
     return {
         content: content.join('\n'),
         components: [],
-        ephemeral: true
+        ephemeral: false
     };
 }
 

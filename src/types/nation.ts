@@ -3,6 +3,7 @@ import { TurnStatus } from "./turnStatus";
 
 export interface Nation {
     nationNumber: number;
+    /** Team number. */
     pretenderNumber: number;
     controller: Controller;
     aiDifficultyNumber: number;

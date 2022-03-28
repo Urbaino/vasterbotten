@@ -2,6 +2,7 @@ import { MessageComponentInteraction, MessageSelectMenu } from 'discord.js';
 import { MessageComponentHandler } from '../../types/messageComponentHandler';
 import { PretenderService } from '../../types/pretenderService';
 import awaitingStart from '../replies/awaitingStart';
+import playerNation from '../replies/playerNation';
 
 const customId = 'selectNation';
 
@@ -13,7 +14,8 @@ const selectNation: MessageComponentHandler = {
         const value = interaction.values[0]
 
         if (await service.claim(value, interaction.user)) {
-            await interaction.update(await awaitingStart(interaction, service));
+            await interaction.update(await playerNation(interaction, service));
+            await interaction.followUp(await awaitingStart(interaction, service));
             return;
         }
 

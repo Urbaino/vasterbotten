@@ -19,6 +19,9 @@ export default class Status {
         return nation.player !== null
     }
 
+    gameStarted() { return this.turn > 0 }
+    allNations(): Nation[] { return this.nations; }
+
     pending(): Nation[] { return this.nations.filter(n => n.submitted && !n.player); }
     claimed() { return this.nations.filter(this.NationHasPlayer); }
     unfinished() { return this.nations.filter(n => n.turnStatus !== TurnStatus.Finished); }
