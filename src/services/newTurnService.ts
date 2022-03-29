@@ -2,7 +2,7 @@ import { Controller } from "../types/controller";
 import { PretenderService } from "../types/pretenderService";
 import { StatusDump } from "../types/statusDump";
 import DmService from "./dmService";
-import Status from "./status";
+import Status from "../types/status";
 import StatusDumpService from "./statusDumpService";
 
 export default class NewTurnService {

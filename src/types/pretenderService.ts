@@ -1,5 +1,5 @@
 import { Nation } from "./nation"
-import Status from "../services/status"
+import Status from "./status"
 import { StatusDump } from "./statusDump"
 import { UserResolvable } from "discord.js"
 

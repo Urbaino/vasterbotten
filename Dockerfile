@@ -5,7 +5,7 @@ WORKDIR /usr/src/app
 COPY out/ .
 COPY node_modules/ node_modules/
 RUN chown -R node /usr/src/app
-RUN mkdir /players
-RUN chown -R node /players
+RUN mkdir /data
+RUN chown -R node /data
 USER node
 CMD ["node", "index.js"]

@@ -1,5 +1,5 @@
 // Require the necessary discord.js classes
-import { token, saveGameDir } from './config.json';
+import { token } from './config.json';
 import { Client, Intents } from 'discord.js';
 import { register } from './register';
 import handlers from './handlers';
@@ -9,11 +9,15 @@ import NewTurnService from './services/newTurnService';
 import FilePretenderServiceBuilder from './services/filePretenderService';
 
 class Vasterbotten {
+
+    public static readonly playersDir = "/data/dominions";
+    public static readonly saveGameDir = "/savedgame";
+
     // Create a new client instance
     private client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
     // Dominions Services
-    private statusService = new StatusDumpService(saveGameDir);
+    private statusService = new StatusDumpService(Vasterbotten.saveGameDir);
 
     public async Start() {
         // Load and monitor the game
@@ -21,7 +25,7 @@ class Vasterbotten {
 
         // Helper services
         const dmService = new DmService(this.client);
-        const pretenderService = await FilePretenderServiceBuilder.build(this.statusService);
+        const pretenderService = await FilePretenderServiceBuilder.build(Vasterbotten.playersDir, this.statusService);
         const newTurnService = new NewTurnService(this.statusService, pretenderService, dmService);
 
         // When the client is ready, run this code (only once)
