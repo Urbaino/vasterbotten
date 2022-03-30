@@ -1,12 +1,12 @@
 // Require the necessary discord.js classes
 import { token } from './config.json';
 import { Client, Intents } from 'discord.js';
-import { register } from './register';
 import handlers from './handlers';
 import StatusDumpService from './services/statusDumpService';
 import DmService from './services/dmService';
 import NewTurnService from './services/newTurnService';
 import FilePretenderServiceBuilder from './services/filePretenderService';
+import { commandsService } from './services/commandsService';
 
 class Vasterbotten {
 
@@ -30,9 +30,8 @@ class Vasterbotten {
 
         // When the client is ready, run this code (only once)
         this.client.once('ready', async () => {
-            // console.log('Registering commands');
-            // await register();
-
+            console.log('Ensuring all commands are registered');
+            await new commandsService().ensureSubmitted()
             console.log('Ready!');
         });
 
