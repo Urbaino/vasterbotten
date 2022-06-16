@@ -11,12 +11,12 @@ const notPlaying: MessageComponentHandler = {
     customId,
     execute: async (interaction: MessageComponentInteraction, service: PretenderService) => {
         if (!interaction.isButton()) return;
-        let status = service.status();
+        const status = service.status();
         if (!status) {
             await interaction.update(await noGameLoaded());
             return;
         }
-        let playerNation = status.playerNation(interaction.user.username);
+        const playerNation = status.playerNation(interaction.user.username);
         if (playerNation) {
 
             if (playerNation.controller === Controller.human) {
