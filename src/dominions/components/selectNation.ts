@@ -3,7 +3,6 @@ import { MessageComponentHandler } from '../../types/messageComponentHandler';
 import { PretenderService } from '../../types/pretenderService';
 import awaitingStart from '../replies/awaitingStart';
 import gameStatus from '../replies/gameStatus';
-import playerNation from '../replies/playerNation';
 
 const customId = 'selectNation';
 
@@ -17,9 +16,8 @@ const selectNation: MessageComponentHandler & { component: (gameName: string, se
         const status = service.status(gameName);
 
         if (await service.claim(gameName, nationId, interaction.user)) {
-            await interaction.update(await playerNation(gameName, interaction, service));
-            await interaction.followUp(status?.gameStarted()
-                ? await gameStatus(gameName, service)
+            await interaction.update(status?.gameStarted()
+                ? await gameStatus(gameName, interaction.user.username, service)
                 : await awaitingStart(gameName, service));
 
             return;

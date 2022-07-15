@@ -22,11 +22,11 @@ export default class FilePretenderServiceBuilder {
             try {
                 const file = await fsp.readFile(path.join(dir, FilePretenderService.filename(gameName)), { encoding: 'utf8' })
                 let players: ([Nation['id'], Player])[] = JSON.parse(file)
-                console.log("Loaded", players.length, "players");
+                console.log("Loaded", players.length, "players for", gameName);
                 return new Collection(players)
             }
             catch {
-                console.log('Could not load players');
+                console.log('Could not load players for', gameName);
             }
         }
         return new Collection<Nation['id'], Player>()

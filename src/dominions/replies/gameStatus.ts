@@ -2,11 +2,13 @@ import { bold, codeBlock } from "@discordjs/builders";
 import { InteractionReplyOptions } from "discord.js";
 import { PretenderService } from '../../types/pretenderService';
 
-const gameStatus: (gameName: string, service: PretenderService) => Promise<InteractionReplyOptions> = async (gameName, service) => {
+const gameStatus: (gameName: string, player: string, service: PretenderService) => Promise<InteractionReplyOptions> = async (gameName, player, service) => {
     const status = service.status(gameName);
 
     let content = []
     content.push(bold(`${status?.gameName} runda ${status?.turn}.`));
+
+    content.push(`Du spelar som ${status?.playerNation(player)?.name}.`)
 
     content.push('Vi väntar på:')
     content.push(codeBlock(status?.unfinishedPlayers().join('\n') ?? ''))
