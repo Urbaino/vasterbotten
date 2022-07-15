@@ -3,13 +3,13 @@ import { InteractionReplyOptions, MessageActionRow } from "discord.js";
 import { PretenderService } from '../../types/pretenderService';
 import selectNation from '../components/selectNation'
 
-const nationSelect: (service: PretenderService) => Promise<InteractionReplyOptions> = async (service) => {
+const nationSelect: (gameName: string, service: PretenderService) => Promise<InteractionReplyOptions> = async (gameName, service) => {
     let content = []
-    let currentPlayers = service.status()?.currentPlayers() ?? []
+    let currentPlayers = service.status(gameName)?.currentPlayers() ?? []
     content.push('Välj din nation')
     currentPlayers.length && content.push(codeBlock(currentPlayers.join('\n')))
 
-    const nationRow = new MessageActionRow().addComponents(await selectNation.component(service));
+    const nationRow = new MessageActionRow().addComponents(await selectNation.component(gameName, service));
     return {
         content: content.join('\n'),
         components: [nationRow],

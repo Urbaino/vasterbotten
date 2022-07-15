@@ -6,8 +6,9 @@ import { UserResolvable } from "discord.js"
 export type Player = { username: string, id: UserResolvable }
 
 export interface PretenderService {
-    claim: (nation: Nation['id'], player: Player) => Promise<boolean>,
-    unclaim: (player: Player) => Promise<boolean>,
-    status: () => Status | null,
-    statusFromDump: (statusDump: StatusDump) => Status
+    claim: (gameName: string, nation: Nation['id'], player: Player) => Promise<boolean>,
+    unclaim: (gameName: string, player: Player) => Promise<boolean>,
+    status: (gameName: string) => Status | null,
+    gameNames: () => string[],
+    statusFromDump: (statusDump: StatusDump) => Status | null
 }

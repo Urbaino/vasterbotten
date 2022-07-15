@@ -10,11 +10,14 @@ import StatusDumpService from "./statusDumpService";
 export default class FilePretenderServiceBuilder {
 
     public static async build(dir: string, statusService: StatusDumpService) {
-        let nations = await this.readFromFile(dir, statusService.Status?.gameName);
-        return new FilePretenderService(dir, statusService, nations);
+        const nationsByGame: FilePretenderService['nationsByGame'] = {}
+        Promise.all(statusService.GameNames().map(async gameName => {
+            nationsByGame[gameName] = await this.readFromFile(dir, gameName);
+        }))
+        return new FilePretenderService(dir, statusService, nationsByGame);
     }
 
-    private static async readFromFile(dir: string, gameName: string | undefined): Promise<FilePretenderService['nations']> {
+    private static async readFromFile(dir: string, gameName: string | undefined): Promise<Collection<Nation['id'], Player>> {
         if (gameName) {
             try {
                 const file = await fsp.readFile(path.join(dir, FilePretenderService.filename(gameName)), { encoding: 'utf8' })
@@ -31,51 +34,61 @@ export default class FilePretenderServiceBuilder {
 }
 
 class FilePretenderService implements PretenderService {
-    private nations: Collection<Nation['id'], Player>;
+    private nationsByGame: { [gameName: string]: Collection<Nation['id'], Player> };
     private statusService: StatusDumpService;
     private dir: string;
 
     public static readonly filename = (gameName: string) => `${gameName}_players.json`
 
-    constructor(dir: string, statusService: StatusDumpService, nations: FilePretenderService['nations']) {
+    constructor(dir: string, statusService: StatusDumpService, nations: FilePretenderService['nationsByGame']) {
         this.dir = dir;
-        this.nations = nations;
+        this.nationsByGame = nations;
         this.statusService = statusService;
     }
 
 
-    private async saveToFile() {
+    private async saveToFile(gameName: string) {
+        const nations = this.nationsByGame[gameName];
+        if (!nations) return
         const entries = [];
-        for (const e of this.nations.entries()) {
-            entries.push(e)
+        for (const nationPlayerPair of nations.entries()) {
+            entries.push(nationPlayerPair)
         }
-        const gameName = this.statusService.Status?.gameName
-        if (!gameName) return
         await fsp.writeFile(path.join(this.dir, FilePretenderService.filename(gameName)), JSON.stringify(entries));
     }
 
-    public async claim(nation: Nation['id'], player: Player) {
-        if (!!this.nations.get(nation)) return false;
-        this.nations.set(nation, { id: player.id, username: player.username });
-        await this.saveToFile();
+    public async claim(gameName: string, nation: Nation['id'], player: Player) {
+        const nations = this.nationsByGame[gameName];
+        if (!!nations.get(nation)) return false;
+        nations.set(nation, { id: player.id, username: player.username });
+        await this.saveToFile(gameName);
         return true;
     }
 
-    public async unclaim(player: Player) {
-        let nation = this.nations.findKey(p => p.id === player.id);
+    public async unclaim(gameName: string, player: Player) {
+        const nations = this.nationsByGame[gameName];
+        let nation = nations.findKey(p => p.id === player.id);
         if (!nation) return false;
-        this.nations.delete(nation);
-        await this.saveToFile();
+        nations.delete(nation);
+        await this.saveToFile(gameName);
         return true;
     }
 
-    public status() {
-        if (!this.statusService.Status) return null
-        return new Status(this.statusService.Status, this.nations);
+    public gameNames = () => this.statusService.GameNames()
+
+    public status(gameName: string) {
+        const status = this.statusService.Status(gameName);
+        if (!status) return null
+        return new Status(status, this.nationsByGame[gameName]);
     }
 
     public statusFromDump(statusDump: StatusDump) {
-        return new Status(statusDump, this.nations);
+        const nations = this.nationsByGame[statusDump.gameName];
+        if (!nations) {
+            console.error(`Nations for ${statusDump.gameName} does not exist!`);
+            return null;
+        }
+        return new Status(statusDump, nations);
     }
 
 }

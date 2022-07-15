@@ -23,8 +23,9 @@ export default class NewTurnService {
         'må dina magiker trolla väl!',
         'må ditt folk frodas!',
         'må dina präster sprida ditt evangelium långt!',
-        'må dina spells ha kraftfull verkan!',
-        'må din kassa vara breddfylld!'
+        'må dina besvärjelser ha kraftfull verkan!',
+        'må din kassa vara breddfylld!',
+        'må de otrogna falla för dina krigare!'
     ]
 
     private GameOver(status: Status) {
@@ -33,18 +34,19 @@ export default class NewTurnService {
     }
 
     private NotifyNewTurn(statusDump: StatusDump) {
-        let status = this.pretenderService.statusFromDump(statusDump)
-        for (let nation of status.claimed()) {
+        const status = this.pretenderService.statusFromDump(statusDump)
+        if (!status) return
+        for (const nation of status.claimed()) {
             let message = ''
             if (nation.controller === Controller.human) {
                 if (this.GameOver(status)) {
-                    message = `Du har lett ditt folk till seger på runda ${status.turn}! Din Gud är den enda sanna Guden! Väl kämpat!`;
+                    message = `Du har lett ditt folk till seger i ${status.gameName} på runda ${status.turn}! Din Gud är den enda sanna Guden! Väl kämpat!`;
                 }
                 else {
-                    message = `Ny runda i Dominions! Runda ${status.turn} har börjat, ${this.messages[Math.floor(Math.random() * this.messages.length)]}`;
+                    message = `Ny runda i ${status.gameName}! Runda ${status.turn} har börjat, ${this.messages[Math.floor(Math.random() * this.messages.length)]}`;
                 }
             } else if (nation.controller === Controller.defeated) {
-                message = `Runda ${status.turn} i Dominions har börjat, tyvärr blev du besegrad. Väl kämpat!`;
+                message = `Runda ${status.turn} i ${status.gameName} har börjat, tyvärr blev du besegrad. Väl kämpat!`;
             }
             else {
                 continue;

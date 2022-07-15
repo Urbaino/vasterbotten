@@ -11,7 +11,7 @@ import { commandsService } from './services/commandsService';
 class Vasterbotten {
 
     public static readonly playersDir = "/data/dominions";
-    public static readonly saveGameDir = "/savedgame";
+    public static readonly saveGameDir = "/saves";
 
     // Create a new client instance
     private client = new Client({ intents: [Intents.FLAGS.GUILDS] });
@@ -41,7 +41,10 @@ class Vasterbotten {
             const command = handlers.commands.get(interaction.commandName);
             console.debug(new Date(), ':', interaction.user.username, ':', interaction.commandName);
 
-            if (!command) return;
+            if (!command) {
+                console.warn('Command does not exist: ', interaction.commandName)
+                return;
+            }
 
             try {
                 await command.execute(interaction, pretenderService);
@@ -54,13 +57,16 @@ class Vasterbotten {
         this.client.on('interactionCreate', async interaction => {
             if (!interaction.isMessageComponent()) return;
 
-            const command = handlers.messageComponents.get(interaction.customId);
+            const component = handlers.messageComponents.get(interaction.customId);
             console.debug(new Date(), ':', interaction.user.username, ':', interaction.customId);
 
-            if (!command) return;
+            if (!component) {
+                console.warn('Command does not exist: ', interaction.customId)
+                return;
+            }
 
             try {
-                await command.execute(interaction, pretenderService);
+                await component.execute(interaction, pretenderService);
             } catch (error) {
                 console.error(error);
                 await interaction.reply({ content: 'There was an error while executing this message component!', ephemeral: true });

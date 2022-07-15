@@ -8,19 +8,19 @@ export type StatusEvent = 'newTurn'
 
 export default class StatusDumpService {
     private readonly dir: string;
-    private readonly statusfilePath: string;
     private timer?: NodeJS.Timer;
-    private status?: StatusDump | undefined;
+    private status: { [gameName: string]: StatusDump } = {};
 
     private events = new EventEmitter();
 
     constructor(dir: string) {
         this.dir = dir;
-        this.statusfilePath = path.join(this.dir, 'statusdump.txt')
     }
 
-    private async ReadStatus(): Promise<StatusDump> {
-        const file = await fsp.readFile(this.statusfilePath, { encoding: 'utf8' })
+    private StatusFilePath = (gameName: string) => path.join(this.dir, gameName, 'statusdump.txt')
+
+    private async ReadStatus(gameName: string): Promise<StatusDump> {
+        const file = await fsp.readFile(this.StatusFilePath(gameName), { encoding: 'utf8' })
 
         const lines = file.split('\n')
         let statusdump: StatusDump = {
@@ -41,21 +41,23 @@ export default class StatusDumpService {
                 id: data[6],
                 name: data[7],
                 tagline: data[8],
-                submitted: fs.existsSync(path.join(this.dir, `${data[6]}.2h`))
+                submitted: fs.existsSync(path.join(this.dir, gameName, `${data[6]}.2h`))
             })
         }
         return statusdump;
     }
 
-    private SetStatus(status: StatusDump | undefined) {
-        // console.debug(new Date(), ':', 'Status updated');
-        this.status = status;
+    private SetStatus(gameName: string, status: StatusDump) {
+        this.status[gameName] = status;
     }
 
-    public get Status(): StatusDump | undefined {
-        return this.status;
+    public Status(gameName: string): StatusDump | undefined {
+        return this.status[gameName];
     }
 
+    public GameNames() {
+        return Object.entries(this.status).map(([key, _]) => key);
+    }
 
     Subscribe(event: StatusEvent, listener: (status: StatusDump) => void) {
         this.events.addListener(event, listener);
@@ -67,23 +69,30 @@ export default class StatusDumpService {
     }
 
     private ProcessEvents(newStatus: StatusDump) {
-        if (!this.status || !newStatus) return newStatus;
-        if (this.status.turn !== newStatus.turn) this.RaiseEvent('newTurn', newStatus)
+        const currentStatus = this.status[newStatus.gameName];
+
+        if (!currentStatus || !newStatus) return newStatus;
+        if (currentStatus.turn !== newStatus.turn) this.RaiseEvent('newTurn', newStatus)
+
         return newStatus
     }
 
-    private async UpdateStatus() {
-        this.SetStatus(this.ProcessEvents(await this.ReadStatus()))
+    private async UpdateStati() {
+        const savedGames = await fsp.readdir(this.dir, { withFileTypes: true });
+        await Promise.all(savedGames.filter(save => save.isDirectory).map(async save => {
+            this.SetStatus(save.name, this.ProcessEvents(await this.ReadStatus(save.name)))
+        }));
+        // TODO: Remove deleted games (directory does not exist anymore) from this.status
     }
 
     async BeginMonitor() {
-        await this.UpdateStatus()
-        this.timer = setInterval(this.UpdateStatus.bind(this), 5000)
-        console.log(`Monitoring statusdump in ${this.dir}`);
+        await this.UpdateStati()
+        this.timer = setInterval(this.UpdateStati.bind(this), 5000)
+        console.log(`Monitoring statusdumps in ${this.dir}`);
     }
 
     EndMonitor() {
         this.timer && clearInterval(this.timer)
-        console.log(`Stopped monitoring statusdump in ${this.dir}`);
+        console.log(`Stopped monitoring statusdumps in ${this.dir}`);
     }
 }

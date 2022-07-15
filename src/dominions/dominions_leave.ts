@@ -2,15 +2,15 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction } from 'discord.js';
 import { CommandHandler } from '../types/commandHandler';
 import { PretenderService } from '../types/pretenderService';
-import gameSelect from './replies/gameSelect';
+import gameLeave from './replies/gameLeave';
 
 const dominions: CommandHandler = {
     data: new SlashCommandBuilder()
         .setName('dominions')
-        .setDescription('Här ansluter du till spel i vår egna Dominions-server, samt ser deras status.'),
+        .setDescription('Här lämnar du pågående spel.'),
     execute: async (interaction: CommandInteraction, service: PretenderService) => {
 
-        await interaction.reply(await gameSelect(service));
+        await interaction.reply(await gameLeave(interaction.user.id, service));
     }
 };
 
