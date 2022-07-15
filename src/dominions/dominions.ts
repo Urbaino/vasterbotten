@@ -1,4 +1,4 @@
-import { SlashCommandBuilder } from '@discordjs/builders';
+import { SlashCommandBuilder, SlashCommandStringOption } from '@discordjs/builders';
 import { AutocompleteInteraction, CommandInteraction } from 'discord.js';
 import { CommandHandler } from '../types/commandHandler';
 import { PretenderService } from '../types/pretenderService';
@@ -6,24 +6,26 @@ import awaitingStart from './replies/awaitingStart';
 import currentGames from './replies/currentGames';
 import gameStatus from './replies/gameStatus';
 import nationSelect from './replies/nationSelect';
-import noAvailablePretenders from './replies/noAvailablePretenders';
-import noGameLoaded from './replies/noGameLoaded';
+import { Controller } from '../types/controller';
+
+const claimCommand = 'claim'
+const statusCommand = 'status'
+const leaveCommand = 'leave'
 
 const gameNameOption = 'gamename'
+const gameNameOptionBuilder = (option: SlashCommandStringOption) => option.setName(gameNameOption).setDescription('Namn på spelet.').setAutocomplete(true).setRequired(true)
 
 const dominions: CommandHandler = {
     data: new SlashCommandBuilder()
         .setName('dominions')
-        .addStringOption(option =>
-            option
-                .setName(gameNameOption)
-                .setDescription('Namn på spelet du vill hantera.')
-                .setAutocomplete(true))
-        .setDescription('Här hanterar du spel på vår egna Dominions-server.'),
+        .addSubcommand(c => c.setName(claimCommand).setDescription('Registrera dig som spelare').addStringOption(gameNameOptionBuilder))
+        .addSubcommand(c => c.setName(statusCommand).setDescription('Se status på spelet').addStringOption(gameNameOptionBuilder))
+        .addSubcommand(c => c.setName(leaveCommand).setDescription('Lämna ett spel').addStringOption(gameNameOptionBuilder))
+        .setDescription('Här hanterar du ditt deltagande på vår egna Dominions-server.'),
     options: (_: AutocompleteInteraction, service: PretenderService) => { return service.gameNames() },
     execute: async (interaction: CommandInteraction, service: PretenderService) => {
-
         let gameName = interaction.options.getString(gameNameOption);
+
         if (!gameName) {
             await interaction.reply(await currentGames(interaction.user.username, service));
             return
@@ -32,34 +34,48 @@ const dominions: CommandHandler = {
         const status = service.status(gameName)
 
         if (!status) {
-            await interaction.reply(await noGameLoaded());
+            await interaction.reply(await currentGames(interaction.user.username, service));
             return;
         }
 
-        if (status.playerNation(interaction.user.username)) {
-            if (status.gameStarted()) {
-                await interaction.reply(await gameStatus(gameName, interaction.user.username, service));
-            }
-            else {
-                await interaction.reply(await awaitingStart(gameName, service));
-            }
-        }
-        else {
-            if (status.pending().length) {
-                await interaction.reply(await nationSelect(gameName, service));
-            }
-            else {
+        switch (interaction.options.getSubcommand()) {
+            case statusCommand:
                 if (status.gameStarted()) {
                     await interaction.reply(await gameStatus(gameName, interaction.user.username, service));
                 }
                 else {
-                    await interaction.reply(await noAvailablePretenders());
+                    await interaction.reply(await awaitingStart(gameName, service));
                 }
-            }
+                break;
 
+            case claimCommand:
+                if (status.playerNation(interaction.user.username)) {
+                    await interaction.reply({ content: `Du har redan valt nation i det här spelet.`, ephemeral: true });
+                }
+                else if (status.pending().length) {
+                    await interaction.reply(await nationSelect(gameName, service));
+                }
+                else {
+                    await interaction.reply({ content: `Det finns inga lediga pretenders. Ladda upp en ny för att välja nation.`, ephemeral: true });
+                }
+                break;
+
+            case leaveCommand:
+                const playerNation = status.playerNation(interaction.user.username);
+                if (!playerNation) {
+                    await interaction.reply({ content: `Du är inte med i detta spel.`, ephemeral: true });
+                }
+                else if (status.gameStarted() && playerNation.controller === Controller.human) {
+                    await interaction.reply({ content: `Du kan inte lämna spelet innan du är besegrad eller har lämnat över till AI.`, ephemeral: true });
+                }
+                else {
+                    service.unclaim(gameName, interaction.user);
+                    await interaction.reply({ content: `Du har lämnat ${gameName}.`, ephemeral: true });
+                    status.gameStarted() && await interaction.followUp({ content: `${interaction.user.username} (${playerNation.name}) har lämnat ${gameName}.`, ephemeral: false });
+                }
+                break;
         }
-
     }
-};
+}
 
 export default dominions

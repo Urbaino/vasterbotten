@@ -1,8 +1,7 @@
 import { codeBlock } from "@discordjs/builders";
-import { InteractionReplyOptions, MessageActionRow } from "discord.js";
+import { InteractionReplyOptions } from "discord.js";
 import { PretenderService } from "../../types/pretenderService";
 import Status from "../../types/status";
-import leaveGame from "../components/leaveGame";
 
 const gameStatusString = (game: Status) => game.gameName + (game.gameStarted() ? '' : ' (Ej startat)')
 
@@ -16,13 +15,11 @@ const currentGames: (player: string, service: PretenderService) => Promise<Inter
             ephemeral: true
         };
     }
-    let components: MessageActionRow[] = []
 
     const playerGames = currentGames.filter(g => g.playerNation(player))
     if (playerGames.length) {
         content.push('Du spelar i följande spel:')
         content.push(codeBlock(playerGames.map(gameStatusString).join('\n')))
-        components = [new MessageActionRow().addComponents(await leaveGame.component(playerGames.map(g => g.gameName)))];
     }
     else {
         content.push('Du är inte med i något spel.')
@@ -34,7 +31,7 @@ const currentGames: (player: string, service: PretenderService) => Promise<Inter
 
     return {
         content: content.join('\n'),
-        components,
+        components: [],
         ephemeral: true
     };
 }
