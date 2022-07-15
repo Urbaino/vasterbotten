@@ -8,7 +8,8 @@ const gameStatus: (gameName: string, player: string, service: PretenderService) 
     let content = []
     content.push(bold(`${status?.gameName} runda ${status?.turn}.`));
 
-    content.push(`Du spelar som ${status?.playerNation(player)?.name}.`)
+    const playerNation = status?.playerNation(player);
+    playerNation && content.push(`Du spelar som ${playerNation.name}.`)
 
     content.push('Vi väntar på:')
     content.push(codeBlock(status?.unfinishedPlayers().join('\n') ?? ''))

@@ -19,17 +19,18 @@ const leaveGame: MessageComponentHandler & { component: (gameNames: string[]) =>
             return;
         }
         const playerNation = status.playerNation(interaction.user.username);
-        if (playerNation) {
-
-            if (playerNation.controller === Controller.human) {
-                await interaction.followUp({ content: `Du kan inte lämna spelet innan du är besegrad eller har lämnat över till AI.`, components: [], ephemeral: true });
-                return
-            }
-
-            service.unclaim(gameName, interaction.user);
-            await interaction.followUp({ content: `${interaction.user.username} (${playerNation.name}) har lämnat spelet.`, ephemeral: false });
+        if (!playerNation) {
+            await interaction.update({ content: `Du är inte med i detta spel.`, components: [] });
+            return
         }
-        await interaction.update({ content: `Du har lämnat spelet.`, components: [] });
+        if (status.gameStarted() && playerNation.controller === Controller.human) {
+            await interaction.update({ content: `Du kan inte lämna spelet innan du är besegrad eller har lämnat över till AI.`, components: [] });
+            return
+        }
+
+        service.unclaim(gameName, interaction.user);
+        await interaction.update({ content: `Du har lämnat ${gameName}.`, components: [] });
+        await interaction.followUp({ content: `${interaction.user.username} (${playerNation.name}) har lämnat ${gameName}.`, ephemeral: false });
     },
     component: async (gameNames: string[]) => {
         const games = gameNames.map(game => ({ label: game, value: game }))
