@@ -8,6 +8,7 @@ const dominions: CommandHandler = {
     data: new SlashCommandBuilder()
         .setName('dominions')
         .setDescription('Här lämnar du pågående spel.'),
+    options: () => null,
     execute: async (interaction: CommandInteraction, service: PretenderService) => {
 
         await interaction.reply(await gameLeave(interaction.user.id, service));

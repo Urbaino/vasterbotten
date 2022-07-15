@@ -55,13 +55,40 @@ class Vasterbotten {
         });
 
         this.client.on('interactionCreate', async interaction => {
+            if (!interaction.isAutocomplete()) return;
+
+            const command = handlers.commands.get(interaction.commandName);
+            console.debug(new Date(), ':', interaction.user.username, ':', interaction.commandName);
+
+            if (!command) {
+                console.warn('Autocomplete command does not exist: ', interaction.commandName)
+                return;
+            }
+            const choices = command.options(interaction, pretenderService);
+            if (!choices) {
+                console.warn('Command does not use options: ', interaction.commandName)
+                return;
+            }
+
+            try {
+                const focusedValue = interaction.options.getFocused().toString();
+                const filtered = choices.filter(choice => choice.startsWith(focusedValue));
+                await interaction.respond(
+                    filtered.map(choice => ({ name: choice, value: choice })),
+                );
+            } catch (error) {
+                console.error(error);
+            }
+        });
+
+        this.client.on('interactionCreate', async interaction => {
             if (!interaction.isMessageComponent()) return;
 
             const component = handlers.messageComponents.get(interaction.customId);
             console.debug(new Date(), ':', interaction.user.username, ':', interaction.customId);
 
             if (!component) {
-                console.warn('Command does not exist: ', interaction.customId)
+                console.warn('Component does not exist: ', interaction.customId)
                 return;
             }
 
