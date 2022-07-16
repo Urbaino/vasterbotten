@@ -6,11 +6,16 @@ import { FileService } from './fileService';
 
 const rest = new REST({ version: '9' }).setToken(token);
 
-export class commandsService {
+export class CommandsService {
 
     private readonly handlersJSON = handlers.commands.map(c => c.data.toJSON());
-    private readonly dir = 'data';
     private readonly filename = 'commands.json';
+
+    private dir: string
+
+    constructor(dir: string) {
+        this.dir = dir;
+    }
 
     public async ensureSubmitted() {
         try {

@@ -6,11 +6,11 @@ import StatusDumpService from './services/statusDumpService';
 import DmService from './services/dmService';
 import NewTurnService from './services/newTurnService';
 import FilePretenderServiceBuilder from './services/filePretenderService';
-import { commandsService } from './services/commandsService';
+import { CommandsService } from './services/commandsService';
 
 class Vasterbotten {
 
-    public static readonly playersDir = "/data/dominions";
+    public static readonly dataDir = "/data";
     public static readonly saveGameDir = "/saves";
 
     // Create a new client instance
@@ -25,13 +25,13 @@ class Vasterbotten {
 
         // Helper services
         const dmService = new DmService(this.client);
-        const pretenderService = await FilePretenderServiceBuilder.build(Vasterbotten.playersDir, this.statusService);
+        const pretenderService = await FilePretenderServiceBuilder.build(Vasterbotten.dataDir, this.statusService);
         const newTurnService = new NewTurnService(this.statusService, pretenderService, dmService);
 
         // When the client is ready, run this code (only once)
         this.client.once('ready', async () => {
             console.log('Ensuring all commands are registered');
-            await new commandsService().ensureSubmitted()
+            await new CommandsService(Vasterbotten.dataDir).ensureSubmitted()
             console.log('Ready!');
         });
 
