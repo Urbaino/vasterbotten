@@ -17,7 +17,7 @@ const selectNation: MessageComponentHandler & { component: (gameName: string, se
 
         if (await service.claim(gameName, nationId, interaction.user)) {
             await interaction.update(status?.gameStarted()
-                ? await gameStatus(gameName, interaction.user.username, service)
+                ? await gameStatus(gameName, interaction.user, service)
                 : await awaitingStart(gameName, service));
 
             return;

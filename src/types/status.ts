@@ -25,7 +25,7 @@ export default class Status {
     pending(): Nation[] { return this.nations.filter(n => n.submitted && !n.player); }
     claimed() { return this.nations.filter(this.NationHasPlayer); }
     unfinished() { return this.nations.filter(n => n.turnStatus !== TurnStatus.Finished); }
-    playerNation(username: string) { return this.claimed().find(n => n.player.username === username); }
+    playerNation(player: Player) { return this.claimed().find(n => n.player.id === player.id); }
 
     currentPlayers() { return this.claimed().map(n => `${n.player.username}: ${n.name}, ${n.tagline}`); }
     pendingNations() { return this.pending().map(n => `${n.name}, ${n.tagline}`); }

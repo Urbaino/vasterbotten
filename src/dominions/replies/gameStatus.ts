@@ -1,8 +1,8 @@
 import { bold, codeBlock } from "@discordjs/builders";
 import { InteractionReplyOptions } from "discord.js";
-import { PretenderService } from '../../types/pretenderService';
+import { Player, PretenderService } from '../../types/pretenderService';
 
-const gameStatus: (gameName: string, player: string, service: PretenderService) => Promise<InteractionReplyOptions> = async (gameName, player, service) => {
+const gameStatus: (gameName: string, player: Player, service: PretenderService) => Promise<InteractionReplyOptions> = async (gameName, player, service) => {
     const status = service.status(gameName);
 
     let content = []

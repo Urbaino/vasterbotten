@@ -1,11 +1,11 @@
 import { codeBlock } from "@discordjs/builders";
 import { InteractionReplyOptions } from "discord.js";
-import { PretenderService } from "../../types/pretenderService";
+import { Player, PretenderService } from "../../types/pretenderService";
 import Status from "../../types/status";
 
 const gameStatusString = (game: Status) => game.gameName + (game.gameStarted() ? '' : ' (Ej startat)')
 
-const currentGames: (player: string, service: PretenderService) => Promise<InteractionReplyOptions> = async (player, service) => {
+const currentGames: (player: Player, service: PretenderService) => Promise<InteractionReplyOptions> = async (player, service) => {
     let content = []
     const currentGames = service.gameNames().map(name => service.status(name)).filter(g => g !== null) as Status[]
     if (!currentGames.length) {

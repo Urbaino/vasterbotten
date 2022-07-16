@@ -27,21 +27,21 @@ const dominions: CommandHandler = {
         let gameName = interaction.options.getString(gameNameOption);
 
         if (!gameName) {
-            await interaction.reply(await currentGames(interaction.user.username, service));
+            await interaction.reply(await currentGames(interaction.user, service));
             return
         }
 
         const status = service.status(gameName)
 
         if (!status) {
-            await interaction.reply(await currentGames(interaction.user.username, service));
+            await interaction.reply(await currentGames(interaction.user, service));
             return;
         }
 
         switch (interaction.options.getSubcommand()) {
             case statusCommand:
                 if (status.gameStarted()) {
-                    await interaction.reply(await gameStatus(gameName, interaction.user.username, service));
+                    await interaction.reply(await gameStatus(gameName, interaction.user, service));
                 }
                 else {
                     await interaction.reply(await awaitingStart(gameName, service));
@@ -49,7 +49,7 @@ const dominions: CommandHandler = {
                 break;
 
             case claimCommand:
-                if (status.playerNation(interaction.user.username)) {
+                if (status.playerNation(interaction.user)) {
                     await interaction.reply({ content: `Du har redan valt nation i det här spelet.`, ephemeral: true });
                 }
                 else if (status.pending().length) {
@@ -61,7 +61,7 @@ const dominions: CommandHandler = {
                 break;
 
             case leaveCommand:
-                const playerNation = status.playerNation(interaction.user.username);
+                const playerNation = status.playerNation(interaction.user);
                 if (!playerNation) {
                     await interaction.reply({ content: `Du är inte med i detta spel.`, ephemeral: true });
                 }
