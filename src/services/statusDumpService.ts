@@ -4,7 +4,7 @@ import path from 'path'
 import { StatusDump } from '../types/statusDump'
 import EventEmitter from 'events'
 
-export type StatusEvent = 'newTurn'
+export type StatusEvent = 'newTurn' | 'deleted'
 
 export default class StatusDumpService {
     private readonly dir: string;
@@ -51,6 +51,10 @@ export default class StatusDumpService {
         this.status[gameName] = status;
     }
 
+    private DeleteStatus(gameName: string) {
+        delete this.status[gameName]
+    }
+
     public Status(gameName: string): StatusDump | undefined {
         return this.status[gameName];
     }
@@ -63,7 +67,7 @@ export default class StatusDumpService {
         this.events.addListener(event, listener);
     }
 
-    private RaiseEvent(event: StatusEvent, status: StatusDump) {
+    private RaiseEvent(event: StatusEvent, status?: StatusDump) {
         console.debug(new Date(), ':', 'event', ':', event);
         this.events.emit(event, status)
     }
@@ -78,11 +82,18 @@ export default class StatusDumpService {
     }
 
     private async UpdateStati() {
-        const savedGames = await fsp.readdir(this.dir, { withFileTypes: true });
-        await Promise.all(savedGames.filter(save => save.isDirectory).map(async save => {
-            this.SetStatus(save.name, this.ProcessEvents(await this.ReadStatus(save.name)))
+        const savedGames = (await fsp.readdir(this.dir, { withFileTypes: true })).filter(save => save.isDirectory).map(save => save.name);
+
+        this.GameNames().filter(game => !savedGames.includes(game)).forEach(game => {
+            console.log(game, 'was deleted')
+            this.DeleteStatus(game)
+            this.RaiseEvent('deleted')
+            // TODO: Delete old Player-configs
+        })
+
+        await Promise.all(savedGames.map(async save => {
+            this.SetStatus(save, this.ProcessEvents(await this.ReadStatus(save)))
         }));
-        // TODO: Remove deleted games (directory does not exist anymore) from this.status
     }
 
     async BeginMonitor() {
