@@ -39,7 +39,7 @@ const dominions: CommandHandler = {
         }
 
         switch (interaction.options.getSubcommand()) {
-            case statusCommand:
+            case statusCommand: {
                 if (status.gameStarted()) {
                     await interaction.reply(await gameStatus(gameName, interaction.user, service));
                 }
@@ -47,26 +47,28 @@ const dominions: CommandHandler = {
                     await interaction.reply(await awaitingStart(gameName, service));
                 }
                 break;
+            }
 
-            case claimCommand:
-                if (status.playerNation(interaction.user)) {
-                    await interaction.reply({ content: `Du har redan valt nation i det här spelet.`, ephemeral: true });
+            case claimCommand: {
+                const playerNation = status.playerNation(interaction.user)
+                if (playerNation) {
+                    await interaction.reply({ content: `Du har redan valt nation i ${gameName}. Du spelar som ${playerNation.name}.`, ephemeral: true });
                 }
                 else if (status.pending().length) {
                     await interaction.reply(await nationSelect(gameName, service));
                 }
                 else {
-                    await interaction.reply({ content: `Det finns inga lediga pretenders. Ladda upp en ny för att välja nation.`, ephemeral: true });
+                    await interaction.reply({ content: `Det finns inga lediga pretenders i ${gameName}. Ladda upp en ny för att välja nation.`, ephemeral: true });
                 }
                 break;
-
-            case leaveCommand:
+            }
+            case leaveCommand: {
                 const playerNation = status.playerNation(interaction.user);
                 if (!playerNation) {
-                    await interaction.reply({ content: `Du är inte med i detta spel.`, ephemeral: true });
+                    await interaction.reply({ content: `Du har ingen nation i ${gameName}.`, ephemeral: true });
                 }
                 else if (status.gameStarted() && playerNation.controller === Controller.human) {
-                    await interaction.reply({ content: `Du kan inte lämna spelet innan du är besegrad eller har lämnat över till AI.`, ephemeral: true });
+                    await interaction.reply({ content: `Du kan inte lämna spelet innan du är besegrad eller har lämnat över din nation till AI.`, ephemeral: true });
                 }
                 else {
                     service.unclaim(gameName, interaction.user);
@@ -74,6 +76,7 @@ const dominions: CommandHandler = {
                     status.gameStarted() && await interaction.followUp({ content: `${interaction.user.username} (${playerNation.name}) har lämnat ${gameName}.`, ephemeral: false });
                 }
                 break;
+            }
         }
     }
 }
