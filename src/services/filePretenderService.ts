@@ -44,8 +44,9 @@ class FilePretenderService implements PretenderService {
         this.dir = dir;
         this.nationsByGame = nations;
         this.statusService = statusService;
+        this.statusService.Subscribe('newGame', this.CreatePlayersFile.bind(this))
+        this.statusService.Subscribe('deleted', this.DeletePlayersFile.bind(this))
     }
-
 
     private async saveToFile(gameName: string) {
         const nations = this.nationsByGame[gameName];
@@ -55,6 +56,15 @@ class FilePretenderService implements PretenderService {
             entries.push(nationPlayerPair)
         }
         await fsp.writeFile(path.join(this.dir, FilePretenderService.filename(gameName)), JSON.stringify(entries));
+    }
+
+    private async CreatePlayersFile(status: StatusDump) {
+        this.nationsByGame[status.gameName] = new Collection<Nation['id'], Player>()
+    }
+
+    private async DeletePlayersFile(status: StatusDump) {
+        delete this.nationsByGame[status.gameName]
+        await fsp.rm(path.join(this.dir, FilePretenderService.filename(status.gameName)), { force: true });
     }
 
     public async claim(gameName: string, nation: Nation['id'], player: Player) {

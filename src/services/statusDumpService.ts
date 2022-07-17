@@ -67,8 +67,8 @@ export default class StatusDumpService {
         this.events.addListener(event, listener);
     }
 
-    private RaiseEvent(event: StatusEvent, status?: StatusDump) {
-        console.debug(new Date(), ':', 'event', ':', event);
+    private RaiseEvent(event: StatusEvent, status: StatusDump) {
+        console.debug(new Date(), ':', 'event', ':', event, ':', status.gameName);
         this.events.emit(event, status)
     }
 
@@ -76,10 +76,9 @@ export default class StatusDumpService {
         const savedGames = (await fsp.readdir(this.dir, { withFileTypes: true })).filter(save => save.isDirectory).map(save => save.name);
 
         this.GameNames().filter(game => !savedGames.includes(game)).forEach(game => {
-            console.log(game, 'was deleted')
+            const status = this.status[game]
             this.DeleteStatus(game)
-            this.RaiseEvent('deleted')
-            // TODO: Delete old Player-configs?
+            this.RaiseEvent('deleted', status)
         })
 
         await Promise.all(savedGames.map(async save => {
@@ -89,7 +88,7 @@ export default class StatusDumpService {
             if (!currentStatus) this.RaiseEvent('newGame', newStatus)
             else if (currentStatus.turn !== newStatus.turn) this.RaiseEvent('newTurn', newStatus)
 
-            this.SetStatus(save, newStatus)
+            this.SetStatus(newStatus.gameName, newStatus)
         }));
     }
 
