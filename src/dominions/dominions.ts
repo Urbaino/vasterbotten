@@ -13,19 +13,24 @@ const statusCommand = 'status'
 const leaveCommand = 'leave'
 
 const gameNameOption = 'gamename'
-const gameNameOptionBuilder = (option: SlashCommandStringOption) => option.setName(gameNameOption).setDescription('Namn på spelet.').setAutocomplete(true).setRequired(true)
+const gameNameOptionBuilder = (option: SlashCommandStringOption, required: boolean = true) =>
+    option
+        .setName(gameNameOption)
+        .setDescription('Namn på spelet.')
+        .setAutocomplete(true)
+        .setRequired(required)
 
 const dominions: CommandHandler = {
     data: new SlashCommandBuilder()
         .setName('dominions')
-        .addSubcommand(c => c.setName(claimCommand).setDescription('Registrera dig som spelare').addStringOption(gameNameOptionBuilder))
-        .addSubcommand(c => c.setName(statusCommand).setDescription('Se status på spelet').addStringOption(gameNameOptionBuilder))
-        .addSubcommand(c => c.setName(leaveCommand).setDescription('Lämna ett spel').addStringOption(gameNameOptionBuilder))
+        .addSubcommand(c => c.setName(claimCommand).setDescription('Registrera dig som spelare.').addStringOption(gameNameOptionBuilder))
+        .addSubcommand(c => c.setName(statusCommand).setDescription('Se status på alla eller ett specifikt spel.').addStringOption(o => gameNameOptionBuilder(o, false)))
+        .addSubcommand(c => c.setName(leaveCommand).setDescription('Lämna ett spel.').addStringOption(gameNameOptionBuilder))
         .setDescription('Här hanterar du ditt deltagande på vår egna Dominions-server.'),
     options: (_: AutocompleteInteraction, service: PretenderService) => { return service.gameNames() },
     execute: async (interaction: CommandInteraction, service: PretenderService) => {
-        let gameName = interaction.options.getString(gameNameOption);
 
+        let gameName = interaction.options.getString(gameNameOption);
         if (!gameName) {
             await interaction.reply(await currentGames(interaction.user, service));
             return

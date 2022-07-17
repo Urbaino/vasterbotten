@@ -24,10 +24,12 @@ export default class Status {
 
     pending(): Nation[] { return this.nations.filter(n => n.submitted && !n.player); }
     claimed() { return this.nations.filter(this.NationHasPlayer); }
+    finished() { return this.nations.filter(n => n.turnStatus === TurnStatus.Finished); }
     unfinished() { return this.nations.filter(n => n.turnStatus !== TurnStatus.Finished); }
     playerNation(player: Player) { return this.claimed().find(n => n.player.id === player.id); }
 
     currentPlayers() { return this.claimed().map(n => `${n.player.username}: ${n.name}, ${n.tagline}`); }
     pendingNations() { return this.pending().map(n => `${n.name}, ${n.tagline}`); }
+    finishedPlayers() { return this.finished().map(n => `${n.player?.username ?? 'Okänd'} (${n.name}, ${n.tagline})`); }
     unfinishedPlayers() { return this.unfinished().map(n => `${n.player?.username ?? 'Okänd'} (${n.name}, ${n.tagline})`); }
 }

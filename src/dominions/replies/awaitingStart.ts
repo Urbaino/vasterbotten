@@ -1,11 +1,15 @@
-import { codeBlock } from "@discordjs/builders";
+import { bold, codeBlock } from "@discordjs/builders";
 import { InteractionReplyOptions } from "discord.js";
 import { PretenderService } from '../../types/pretenderService';
 
 const awaitingStart: (gameName: string, service: PretenderService) => Promise<InteractionReplyOptions> = async (gameName, service) => {
-    let content = [];
+    const status = service.status(gameName);
+    if (!status) return { content: 'Kunde inte läsa status på spelet.', ephemeral: true };
 
-    let currentPlayers = service.status(gameName)?.currentPlayers() ?? []
+    let content = [];
+    content.push(bold(`${status.gameName}`));
+
+    let currentPlayers = status.currentPlayers() ?? []
     if (currentPlayers.length) {
         content.push(`Valda pretenders:`)
         content.push(codeBlock(currentPlayers.join('\n')))
@@ -14,7 +18,7 @@ const awaitingStart: (gameName: string, service: PretenderService) => Promise<In
         content.push('Inga pretenders valda.')
     }
 
-    let pendingNations = service.status(gameName)?.pendingNations() ?? [];
+    let pendingNations = status.pendingNations() ?? [];
     if (pendingNations.length) {
         content.push(`Kvar att välja:`)
         content.push(codeBlock(pendingNations.join('\n')))
