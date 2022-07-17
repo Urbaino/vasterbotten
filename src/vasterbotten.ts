@@ -39,10 +39,10 @@ class Vasterbotten {
             if (!interaction.isCommand()) return;
 
             const command = handlers.commands.get(interaction.commandName);
-            console.debug(new Date(), ':', interaction.user.username, ':', interaction.commandName);
+            console.debug(new Date(), ':', interaction.user.username, ':', interaction.commandName, interaction.options.getSubcommand());
 
             if (!command) {
-                console.warn('Command does not exist: ', interaction.commandName)
+                console.warn('Command does not exist: ', interaction.commandName, interaction.options.getSubcommand())
                 return;
             }
 
@@ -58,15 +58,15 @@ class Vasterbotten {
             if (!interaction.isAutocomplete()) return;
 
             const command = handlers.commands.get(interaction.commandName);
-            console.debug(new Date(), ':', interaction.user.username, ':', interaction.commandName);
+            console.debug(new Date(), ':', interaction.user.username, ':', 'Autocomplete', ':', interaction.commandName, interaction.options.getSubcommand());
 
             if (!command) {
-                console.warn('Autocomplete command does not exist: ', interaction.commandName)
+                console.warn('Autocomplete command does not exist: ', interaction.commandName, interaction.options.getSubcommand())
                 return;
             }
             const choices = command.options(interaction, pretenderService);
             if (!choices) {
-                console.warn('Command does not use options: ', interaction.commandName)
+                console.warn('Command does not use options: ', interaction.commandName, interaction.options.getSubcommand())
                 return;
             }
 
