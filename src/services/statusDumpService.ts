@@ -19,32 +19,38 @@ export default class StatusDumpService {
 
     private StatusFilePath = (gameName: string) => path.join(this.dir, gameName, 'statusdump.txt')
 
-    private async ReadStatus(gameName: string): Promise<StatusDump> {
-        const file = await fsp.readFile(this.StatusFilePath(gameName), { encoding: 'utf8' })
+    private async ReadStatus(gameName: string): Promise<StatusDump | null> {
+        try {
+            const file = await fsp.readFile(this.StatusFilePath(gameName), { encoding: 'utf8' })
 
-        const lines = file.split('\n')
-        let statusdump: StatusDump = {
-            gameName: lines[0].match(/Status for \'(.*)\'/)?.at(1) ?? '',
-            turn: Number.parseInt(lines[1].match(/turn (-?\d+)/)?.at(1) ?? ''),
-            nations: []
-        }
+            const lines = file.split('\n')
+            let statusdump: StatusDump = {
+                gameName: lines[0].match(/Status for \'(.*)\'/)?.at(1) ?? '',
+                turn: Number.parseInt(lines[1].match(/turn (-?\d+)/)?.at(1) ?? ''),
+                nations: []
+            }
 
-        for (let i = 2; i < lines.length; ++i) {
-            if (lines[i].length === 0) continue;
-            let data = lines[i].split('\t');
-            statusdump.nations.push({
-                nationNumber: Number.parseInt(data[1]),
-                pretenderNumber: Number.parseInt(data[2]),
-                controller: Number.parseInt(data[3]),
-                aiDifficultyNumber: Number.parseInt(data[4]),
-                turnStatus: Number.parseInt(data[5]),
-                id: data[6],
-                name: data[7],
-                tagline: data[8],
-                submitted: fs.existsSync(path.join(this.dir, gameName, `${data[6]}.2h`))
-            })
+            for (let i = 2; i < lines.length; ++i) {
+                if (lines[i].length === 0) continue;
+                let data = lines[i].split('\t');
+                statusdump.nations.push({
+                    nationNumber: Number.parseInt(data[1]),
+                    pretenderNumber: Number.parseInt(data[2]),
+                    controller: Number.parseInt(data[3]),
+                    aiDifficultyNumber: Number.parseInt(data[4]),
+                    turnStatus: Number.parseInt(data[5]),
+                    id: data[6],
+                    name: data[7],
+                    tagline: data[8],
+                    submitted: fs.existsSync(path.join(this.dir, gameName, `${data[6]}.2h`))
+                })
+            }
+            return statusdump;
         }
-        return statusdump;
+        catch (error) {
+            console.error(error);
+            return null
+        }
     }
 
     private SetStatus(gameName: string, status: StatusDump) {
@@ -83,6 +89,7 @@ export default class StatusDumpService {
 
         await Promise.all(savedGames.map(async save => {
             const newStatus = await this.ReadStatus(save)
+            if (!newStatus) return
 
             const currentStatus = this.status[newStatus.gameName];
             if (!currentStatus) this.RaiseEvent('newGame', newStatus)
