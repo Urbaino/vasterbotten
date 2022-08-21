@@ -1,4 +1,5 @@
 import { Collection } from "discord.js";
+import { Controller } from "./controller";
 import { Nation } from "./nation";
 import { Player } from "./pretenderService";
 import { StatusDump } from "./statusDump";
@@ -25,7 +26,7 @@ export default class Status {
     pending(): Nation[] { return this.nations.filter(n => n.submitted && !n.player); }
     claimed() { return this.nations.filter(this.NationHasPlayer); }
     finished() { return this.nations.filter(n => n.turnStatus === TurnStatus.Finished); }
-    unfinished() { return this.nations.filter(n => n.turnStatus !== TurnStatus.Finished); }
+    unfinished() { return this.nations.filter(n => n.controller !== Controller.ai && n.turnStatus !== TurnStatus.Finished); }
     playerNation(player: Player) { return this.claimed().find(n => n.player.id === player.id); }
 
     currentPlayers() { return this.claimed().map(n => `${n.player.username}: ${n.name}, ${n.tagline}`); }
