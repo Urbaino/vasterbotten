@@ -29,7 +29,7 @@ export default class NewTurnService {
     ]
 
     private GameOver(status: Status) {
-        const teamsAlive = new Set<number>(status.allNations().filter(n => n.controller === Controller.human).map(n => n.pretenderNumber))
+        const teamsAlive = new Set<number>(status.allNations().filter(n => n.controller === Controller.human || n.controller === Controller.ai).map(n => n.pretenderNumber))
         return teamsAlive.size === 1;
     }
 
