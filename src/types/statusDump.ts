@@ -1,4 +1,4 @@
-import { Nation } from './nation';
+import { Nation } from './nation.js';
 
 export interface StatusDump {
     gameName: string;

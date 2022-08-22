@@ -1,7 +1,7 @@
 import { codeBlock } from "@discordjs/builders";
 import { InteractionReplyOptions, MessageActionRow } from "discord.js";
-import { PretenderService } from '../../types/pretenderService';
-import selectNation from '../components/selectNation'
+import { PretenderService } from '../../types/pretenderService.js';
+import selectNation from '../components/selectNation.js'
 
 const nationSelect: (gameName: string, service: PretenderService) => Promise<InteractionReplyOptions> = async (gameName, service) => {
     let content = []

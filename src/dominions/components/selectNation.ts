@@ -1,8 +1,8 @@
 import { MessageActionRowComponent, MessageComponentInteraction, MessageSelectMenu } from 'discord.js';
-import { MessageComponentHandler } from '../../types/messageComponentHandler';
-import { PretenderService } from '../../types/pretenderService';
-import awaitingStart from '../replies/awaitingStart';
-import gameStatus from '../replies/gameStatus';
+import { MessageComponentHandler } from '../../types/messageComponentHandler.js';
+import { PretenderService } from '../../types/pretenderService.js';
+import awaitingStart from '../replies/awaitingStart.js';
+import gameStatus from '../replies/gameStatus.js';
 
 const customId = 'selectNation';
 

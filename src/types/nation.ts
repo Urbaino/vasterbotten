@@ -1,5 +1,5 @@
-import { Controller } from "./controller";
-import { TurnStatus } from "./turnStatus";
+import { Controller } from "./controller.js";
+import { TurnStatus } from "./turnStatus.js";
 
 export interface Nation {
     nationNumber: number;

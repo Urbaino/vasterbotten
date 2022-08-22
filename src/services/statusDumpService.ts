@@ -1,7 +1,7 @@
 import fs from 'fs'
 import fsp from 'fs/promises'
 import path from 'path'
-import { StatusDump } from '../types/statusDump'
+import { StatusDump } from '../types/statusDump.js'
 import EventEmitter from 'events'
 
 export type StatusEvent = 'newTurn' | 'deleted' | 'newGame'

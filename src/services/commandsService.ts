@@ -1,10 +1,10 @@
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
-import { token, clientId, guildId } from '../config.json';
-import handlers from '../handlers';
-import { FileService } from './fileService';
+import config from '../config.json' assert {type: "json"};
+import handlers from '../handlers.js';
+import { FileService } from './fileService.js';
 
-const rest = new REST({ version: '9' }).setToken(token);
+const rest = new REST({ version: '9' }).setToken(config.token);
 
 export class CommandsService {
 
@@ -35,7 +35,7 @@ export class CommandsService {
             console.log('Started refreshing application (/) commands.');
 
             await rest.put(
-                Routes.applicationGuildCommands(clientId, guildId),
+                Routes.applicationGuildCommands(config.clientId, config.guildId),
                 { body: this.handlersJSON },
             );
 

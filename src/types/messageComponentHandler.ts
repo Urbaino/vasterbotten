@@ -1,5 +1,5 @@
 import { MessageComponentInteraction } from "discord.js";
-import { PretenderService } from "./pretenderService";
+import { PretenderService } from "./pretenderService.js";
 
 export interface MessageComponentHandler {
     customId: string,

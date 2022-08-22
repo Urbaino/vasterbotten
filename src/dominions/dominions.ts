@@ -1,12 +1,12 @@
 import { SlashCommandBuilder, SlashCommandStringOption } from '@discordjs/builders';
 import { AutocompleteInteraction, CommandInteraction } from 'discord.js';
-import { CommandHandler } from '../types/commandHandler';
-import { PretenderService } from '../types/pretenderService';
-import awaitingStart from './replies/awaitingStart';
-import currentGames from './replies/currentGames';
-import gameStatus from './replies/gameStatus';
-import nationSelect from './replies/nationSelect';
-import { Controller } from '../types/controller';
+import { CommandHandler } from '../types/commandHandler.js';
+import { PretenderService } from '../types/pretenderService.js';
+import awaitingStart from './replies/awaitingStart.js';
+import currentGames from './replies/currentGames.js';
+import gameStatus from './replies/gameStatus.js';
+import nationSelect from './replies/nationSelect.js';
+import { Controller } from '../types/controller.js';
 
 const claimCommand = 'claim'
 const statusCommand = 'status'

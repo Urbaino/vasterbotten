@@ -1,11 +1,11 @@
 import { Collection } from "discord.js";
 import fsp from 'fs/promises'
 import path from 'path'
-import { Nation } from "../types/nation";
-import { PretenderService, Player } from "../types/pretenderService";
-import { StatusDump } from "../types/statusDump";
-import Status from "../types/status";
-import StatusDumpService from "./statusDumpService";
+import { Nation } from "../types/nation.js";
+import { PretenderService, Player } from "../types/pretenderService.js";
+import { StatusDump } from "../types/statusDump.js";
+import Status from "../types/status.js";
+import StatusDumpService from "./statusDumpService.js";
 
 export default class FilePretenderServiceBuilder {
 

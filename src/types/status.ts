@@ -1,9 +1,9 @@
 import { Collection } from "discord.js";
-import { Controller } from "./controller";
-import { Nation } from "./nation";
-import { Player } from "./pretenderService";
-import { StatusDump } from "./statusDump";
-import { TurnStatus } from "./turnStatus";
+import { Controller } from "./controller.js";
+import { Nation } from "./nation.js";
+import { Player } from "./pretenderService.js";
+import { StatusDump } from "./statusDump.js";
+import { TurnStatus } from "./turnStatus.js";
 
 export default class Status {
     readonly gameName: string;

@@ -1,6 +1,6 @@
-import { Nation } from "./nation"
-import Status from "./status"
-import { StatusDump } from "./statusDump"
+import { Nation } from "./nation.js"
+import Status from "./status.js"
+import { StatusDump } from "./statusDump.js"
 import { UserResolvable } from "discord.js"
 
 export type Player = { username: string, id: UserResolvable }

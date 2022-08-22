@@ -1,9 +1,9 @@
-import { Controller } from "../types/controller";
-import { PretenderService } from "../types/pretenderService";
-import { StatusDump } from "../types/statusDump";
-import DmService from "./dmService";
-import Status from "../types/status";
-import StatusDumpService from "./statusDumpService";
+import { Controller } from "../types/controller.js";
+import { PretenderService } from "../types/pretenderService.js";
+import { StatusDump } from "../types/statusDump.js";
+import DmService from "./dmService.js";
+import Status from "../types/status.js";
+import StatusDumpService from "./statusDumpService.js";
 
 export default class NewTurnService {
     private statusService: StatusDumpService

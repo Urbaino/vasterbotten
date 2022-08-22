@@ -1,6 +1,6 @@
 import { bold, codeBlock } from "@discordjs/builders";
 import { InteractionReplyOptions } from "discord.js";
-import { PretenderService } from '../../types/pretenderService';
+import { PretenderService } from '../../types/pretenderService.js';
 
 const awaitingStart: (gameName: string, service: PretenderService) => Promise<InteractionReplyOptions> = async (gameName, service) => {
     const status = service.status(gameName);

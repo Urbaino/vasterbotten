@@ -1,12 +1,12 @@
 // Require the necessary discord.js classes
-import { token } from './config.json';
+import config from './config.json' assert {type: "json"};
 import { Client, Intents } from 'discord.js';
-import handlers from './handlers';
-import StatusDumpService from './services/statusDumpService';
-import DmService from './services/dmService';
-import NewTurnService from './services/newTurnService';
-import FilePretenderServiceBuilder from './services/filePretenderService';
-import { CommandsService } from './services/commandsService';
+import handlers from './handlers.js';
+import StatusDumpService from './services/statusDumpService.js';
+import DmService from './services/dmService.js';
+import NewTurnService from './services/newTurnService.js';
+import FilePretenderServiceBuilder from './services/filePretenderService.js';
+import { CommandsService } from './services/commandsService.js';
 
 class Vasterbotten {
 
@@ -101,7 +101,7 @@ class Vasterbotten {
         });
 
         // Login to Discord with your client's token
-        this.client.login(token);
+        this.client.login(config.token);
     }
 
     public async Stop() {
