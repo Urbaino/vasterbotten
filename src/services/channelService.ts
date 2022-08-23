@@ -1,0 +1,111 @@
+import { Client, Guild, GuildBasedChannel, Snowflake, UserResolvable } from 'discord.js';
+import { StatusDump } from '../types/statusDump';
+import StatusDumpService from './statusDumpService';
+
+type ChannelId = Snowflake
+
+const CategoryName = "Dominions"
+
+class ChannelService {
+    private client: Client
+    private statusService: StatusDumpService
+
+    constructor(client: Client, statusService: StatusDumpService) {
+        this.client = client;
+        this.statusService = statusService;
+        this.statusService.Subscribe('newGame', this.HandleNewGame.bind(this))
+        this.statusService.Subscribe('deleted', this.HandleDeleted.bind(this))
+    }
+
+    private async FindOrCreateCategoryChannel(guild: Guild): Promise<ChannelId> {
+        const category = guild.channels.cache.find(c => c.type === 'GUILD_CATEGORY' && c.name === CategoryName)
+        if (category) return category.id
+        console.debug("Creating Dominions category in guild", guild.id)
+        const newCategory = await guild.channels.create(CategoryName, {
+            type: 'GUILD_CATEGORY',
+        })
+        return newCategory.id
+    }
+
+    private async HandleNewGame(status: StatusDump) {
+        const guilds = this.client.guilds.cache;
+        return await Promise.all(guilds.map(async guild => {
+            const categoryId = await this.FindOrCreateCategoryChannel(guild)
+            await this.CreateChannel(status.gameName, guild, categoryId)
+        }))
+    }
+
+    private async HandleDeleted(status: StatusDump) {
+        const guilds = this.client.guilds.cache;
+        return await Promise.all(guilds.map(async guild => {
+            await this.DeleteChannel(status.gameName, guild)
+        }))
+    }
+
+    async SetupChannels() {
+        const gameNames = this.statusService.GameNames()
+        const guilds = this.client.guilds.cache;
+        await Promise.all(guilds.map(async guild => {
+            const categoryId = await this.FindOrCreateCategoryChannel(guild)
+            const channelsByGameNames: GuildBasedChannel[] = []
+            await Promise.all(gameNames.map(async gameName => {
+                channelsByGameNames.push(await this.CreateChannel(gameName, guild, categoryId));
+            }))
+            const channelsWithoutGame = guild.channels.cache.filter(channel => channel.parentId === categoryId && !channelsByGameNames.find(c => c.id === channel.id))
+            console.debug(channelsWithoutGame.entries.length, "games to delete");
+            await Promise.all(channelsWithoutGame.map(async c => {
+                const channel = await this.client.channels.fetch(c.id)
+                if (!channel) return
+                await channel.delete("Game ended")
+                console.log("Deleted hanging channel", c.id)
+            }))
+        }))
+    }
+
+    private async CreateChannel(name: string, guild: Guild, categoryId: ChannelId) {
+        const existingChannel = guild.channels.cache.find(c => c.name === name.toLowerCase());
+        if (existingChannel) return existingChannel;
+
+        console.debug("Creating new Game channel", name, "in guild", guild.id)
+        return await guild.channels.create(name, {
+            type: 'GUILD_TEXT',
+            parent: categoryId,
+            reason: "New game started",
+            // permissionOverwrites // TODO
+        })
+    }
+
+    private async DeleteChannel(name: string, guild: Guild) {
+        const channel = guild.channels.cache.find(c => c.name === name.toLowerCase());
+        if (!channel) {
+            console.error("Failed to delete channel", name, "as it could not be found in guild", guild.id)
+            return
+        }
+        await channel.delete("Game ended")
+        console.debug("Deleted Game channel", name, "in guild", guild.id)
+    }
+
+    private async AddUserToChannel(channelId: ChannelId, user: UserResolvable) { }
+    private async RemoveUserFromChannel(channelId: ChannelId, user: UserResolvable) { }
+
+    async SendToChannel(name: string, message: string) {
+
+        const guilds = this.client.guilds.cache
+        await Promise.all(guilds.map(async guild => {
+
+            const channel = await guild.channels.cache.find(c => c.name === name.toLowerCase());
+            if (!channel) {
+                console.error("Failed to send message to channel", name, "as it could not be found in guild", guild.id)
+                return
+            }
+            if (!channel.isText()) {
+                console.error("Failed to send message to channel", name, "as it not a text channel in guild", guild.id)
+                return
+            }
+            await channel.send(message);
+        }))
+
+    }
+}
+
+export default ChannelService
