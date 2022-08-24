@@ -4,7 +4,7 @@ import path from 'path'
 import { StatusDump } from '../types/statusDump.js'
 import EventEmitter from 'events'
 
-export type StatusEvent = 'newTurn' | 'deleted' | 'newGame'
+export type StatusEvent = 'newTurn' | 'deleted' | 'newGame' | 'turnUpdated'
 
 export default class StatusDumpService {
     private readonly dir: string;
@@ -94,6 +94,8 @@ export default class StatusDumpService {
             const currentStatus = this.status[newStatus.gameName];
             if (!currentStatus) this.RaiseEvent('newGame', newStatus)
             else if (currentStatus.turn !== newStatus.turn) this.RaiseEvent('newTurn', newStatus)
+            else if (currentStatus.nations.filter((n, i) => n.turnStatus !== newStatus.nations[i].turnStatus).length) this.RaiseEvent('turnUpdated', newStatus)
+
 
             this.SetStatus(newStatus.gameName, newStatus)
         }));

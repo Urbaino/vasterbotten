@@ -24,6 +24,7 @@ class ChannelService {
         this.statusService.Subscribe('newGame', this.HandleNewGame.bind(this))
         this.statusService.Subscribe('deleted', this.HandleDeleted.bind(this))
         this.statusService.Subscribe('newTurn', this.HandleNewTurn.bind(this))
+        this.statusService.Subscribe('turnUpdated', this.HandleTurnUpdated.bind(this))
     }
 
     private async FindOrCreateCategoryChannel(guild: Guild): Promise<ChannelId> {
@@ -52,6 +53,13 @@ class ChannelService {
     }
 
     private async HandleNewTurn(statusDump: StatusDump) {
+        const guilds = this.client.guilds.cache;
+        await Promise.all(guilds.map(async guild => {
+            await this.SetStatusMessage(statusDump, guild)
+        }))
+    }
+
+    private async HandleTurnUpdated(statusDump: StatusDump) {
         const guilds = this.client.guilds.cache;
         await Promise.all(guilds.map(async guild => {
             await this.SetStatusMessage(statusDump, guild)
@@ -141,6 +149,7 @@ class ChannelService {
             type: 'GUILD_TEXT',
             parent: categoryId,
             reason: "New game started",
+            topic: "Dominions 5 - " + name,
             permissionOverwrites,
         })
     }
