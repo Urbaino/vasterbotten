@@ -2,19 +2,18 @@ import fs from 'fs'
 import fsp from 'fs/promises'
 import path from 'path'
 import { StatusDump } from '../types/statusDump.js'
-import EventEmitter from 'events'
-
-export type StatusEvent = 'newTurn' | 'deleted' | 'newGame' | 'turnUpdated' | 'pretenderSubmitted' | 'pretenderClaimed' | 'playerLeft'
+import EventService from './eventService.js'
 
 export default class StatusDumpService {
     private readonly dir: string;
     private timer?: NodeJS.Timer;
     private status: { [gameName: string]: StatusDump } = {};
 
-    private events = new EventEmitter();
+    private eventService: EventService;
 
-    constructor(dir: string) {
+    constructor(dir: string, eventService: EventService) {
         this.dir = dir;
+        this.eventService = eventService;
     }
 
     private StatusFilePath = (gameName: string) => path.join(this.dir, gameName, 'statusdump.txt')
@@ -69,22 +68,13 @@ export default class StatusDumpService {
         return Object.entries(this.status).map(([key, _]) => key);
     }
 
-    Subscribe(event: StatusEvent, listener: (status: StatusDump) => void) {
-        this.events.addListener(event, listener);
-    }
-
-    private RaiseEvent(event: StatusEvent, status: StatusDump) {
-        console.debug(new Date(), ':', 'event', ':', event, ':', status.gameName);
-        this.events.emit(event, status)
-    }
-
     private async UpdateStati() {
         const savedGames = (await fsp.readdir(this.dir, { withFileTypes: true })).filter(save => save.isDirectory).map(save => save.name);
 
         this.GameNames().filter(game => !savedGames.includes(game)).forEach(game => {
             const status = this.status[game]
             this.DeleteStatus(game)
-            this.RaiseEvent('deleted', status)
+            this.eventService.Raise('deleted', status)
         })
 
         await Promise.all(savedGames.map(async save => {
@@ -92,14 +82,14 @@ export default class StatusDumpService {
             if (!newStatus) return
 
             const currentStatus = this.status[newStatus.gameName];
-            if (!currentStatus) this.RaiseEvent('newGame', newStatus)
+            if (!currentStatus) this.eventService.Raise('newGame', newStatus)
             else {
-                if (currentStatus.turn !== newStatus.turn) this.RaiseEvent('newTurn', newStatus)
+                if (currentStatus.turn !== newStatus.turn) this.eventService.Raise('newTurn', newStatus)
                 else for (let i = 0; i < currentStatus.nations.length; ++i) {
                     const currentNation = currentStatus.nations[i];
                     const newNation = newStatus.nations[i];
-                    if (currentNation.turnStatus !== newNation.turnStatus) this.RaiseEvent('turnUpdated', newStatus)
-                    if (!newStatus.turn && !currentNation.submitted && newNation.submitted) this.RaiseEvent('pretenderSubmitted', newStatus)
+                    if (currentNation.turnStatus !== newNation.turnStatus) this.eventService.Raise('turnUpdated', newStatus)
+                    if (!newStatus.turn && !currentNation.submitted && newNation.submitted) this.eventService.Raise('pretenderSubmitted', newStatus)
                 }
             }
 

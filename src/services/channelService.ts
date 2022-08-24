@@ -3,6 +3,7 @@ import { Client, Guild, GuildBasedChannel, OverwriteResolvable, Snowflake } from
 import { PretenderService } from '../types/pretenderService.js';
 import Status from '../types/status.js';
 import { StatusDump } from '../types/statusDump.js';
+import EventService from './eventService.js';
 import RoleService from './roleService.js';
 import StatusDumpService from './statusDumpService.js';
 
@@ -15,19 +16,21 @@ class ChannelService {
     private statusService: StatusDumpService
     private roleService: RoleService
     private pretenderService: PretenderService
+    private eventService: EventService
 
-    constructor(client: Client, statusService: StatusDumpService, pretenderService: PretenderService, roleService: RoleService) {
+    constructor(client: Client, statusService: StatusDumpService, pretenderService: PretenderService, roleService: RoleService, eventService: EventService) {
         this.client = client;
         this.statusService = statusService;
         this.roleService = roleService;
         this.pretenderService = pretenderService;
-        this.statusService.Subscribe('newGame', this.HandleNewGame.bind(this))
-        this.statusService.Subscribe('deleted', this.HandleDeleted.bind(this))
-        this.statusService.Subscribe('newTurn', this.HandleNewTurn.bind(this))
-        this.statusService.Subscribe('turnUpdated', this.HandleGameUpdated.bind(this))
-        this.statusService.Subscribe('pretenderSubmitted', this.HandleGameUpdated.bind(this))
-        this.statusService.Subscribe('pretenderClaimed', this.HandleGameUpdated.bind(this))
-        this.statusService.Subscribe('playerLeft', this.HandleGameUpdated.bind(this))
+        this.eventService = eventService;
+        this.eventService.Subscribe('newGame', this.HandleNewGame.bind(this))
+        this.eventService.Subscribe('deleted', this.HandleDeleted.bind(this))
+        this.eventService.Subscribe('newTurn', this.HandleNewTurn.bind(this))
+        this.eventService.Subscribe('turnUpdated', this.HandleGameUpdated.bind(this))
+        this.eventService.Subscribe('pretenderSubmitted', this.HandleGameUpdated.bind(this))
+        this.eventService.Subscribe('pretenderClaimed', this.HandleGameUpdated.bind(this))
+        this.eventService.Subscribe('playerLeft', this.HandleGameUpdated.bind(this))
     }
 
     private async FindOrCreateCategoryChannel(guild: Guild): Promise<ChannelId> {

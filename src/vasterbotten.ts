@@ -9,6 +9,7 @@ import FilePretenderServiceBuilder from './services/filePretenderService.js';
 import { CommandsService } from './services/commandsService.js';
 import ChannelService from './services/channelService.js';
 import RoleService from './services/roleService.js';
+import EventService from './services/eventService.js';
 
 class Vasterbotten {
 
@@ -19,7 +20,8 @@ class Vasterbotten {
     private client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
     // Dominions Services
-    private statusService = new StatusDumpService(Vasterbotten.saveGameDir);
+    private eventService = new EventService();
+    private statusService = new StatusDumpService(Vasterbotten.saveGameDir, this.eventService);
 
     public async Start() {
         // Load and monitor the game
@@ -28,9 +30,9 @@ class Vasterbotten {
         // Helper services
         const dmService = new DmService(this.client);
         const roleService = new RoleService(this.client);
-        const pretenderService = await FilePretenderServiceBuilder.build(Vasterbotten.dataDir, this.statusService, roleService);
-        const channelService = new ChannelService(this.client, this.statusService, pretenderService, roleService);
-        const newTurnService = new NewTurnService(this.statusService, pretenderService, dmService);
+        const pretenderService = await FilePretenderServiceBuilder.build(Vasterbotten.dataDir, this.statusService, roleService, this.eventService);
+        const channelService = new ChannelService(this.client, this.statusService, pretenderService, roleService, this.eventService);
+        const newTurnService = new NewTurnService(pretenderService, dmService, this.eventService);
 
         // When the client is ready, run this code (only once)
         this.client.once('ready', async () => {

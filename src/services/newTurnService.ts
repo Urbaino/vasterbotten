@@ -3,18 +3,18 @@ import { PretenderService } from "../types/pretenderService.js";
 import { StatusDump } from "../types/statusDump.js";
 import DmService from "./dmService.js";
 import Status from "../types/status.js";
-import StatusDumpService from "./statusDumpService.js";
+import EventService from "./eventService.js";
 
 export default class NewTurnService {
-    private statusService: StatusDumpService
     private pretenderService: PretenderService
     private dmService: DmService
+    private eventService: EventService
 
-    constructor(statusService: StatusDumpService, pretenderService: PretenderService, dmService: DmService) {
-        this.statusService = statusService;
+    constructor(pretenderService: PretenderService, dmService: DmService, eventService: EventService) {
         this.pretenderService = pretenderService;
         this.dmService = dmService;
-        this.statusService.Subscribe('newTurn', this.NotifyNewTurn.bind(this))
+        this.eventService = eventService;
+        this.eventService.Subscribe('newTurn', this.NotifyNewTurn.bind(this))
     }
 
     private readonly messages = [

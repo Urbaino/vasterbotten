@@ -7,15 +7,16 @@ import { StatusDump } from "../types/statusDump.js";
 import Status from "../types/status.js";
 import StatusDumpService from "./statusDumpService.js";
 import RoleService from "./roleService.js";
+import EventService from "./eventService.js";
 
 export default class FilePretenderServiceBuilder {
 
-    public static async build(dir: string, statusService: StatusDumpService, roleService: RoleService) {
+    public static async build(dir: string, statusService: StatusDumpService, roleService: RoleService, eventService: EventService) {
         const nationsByGame: FilePretenderService['nationsByGame'] = {}
         await Promise.all(statusService.GameNames().map(async gameName => {
             nationsByGame[gameName] = await this.readFromFile(dir, gameName);
         }))
-        return new FilePretenderService(dir, statusService, roleService, nationsByGame);
+        return new FilePretenderService(dir, statusService, roleService, eventService, nationsByGame);
     }
 
     private static async readFromFile(dir: string, gameName: string | undefined): Promise<Collection<Nation['id'], Player>> {
@@ -38,17 +39,19 @@ class FilePretenderService implements PretenderService {
     private nationsByGame: { [gameName: string]: Collection<Nation['id'], Player> };
     private statusService: StatusDumpService;
     private roleService: RoleService;
+    private eventService: EventService;
     private dir: string;
 
     public static readonly filename = (gameName: string) => `${gameName}_players.json`
 
-    constructor(dir: string, statusService: StatusDumpService, roleService: RoleService, nations: FilePretenderService['nationsByGame']) {
+    constructor(dir: string, statusService: StatusDumpService, roleService: RoleService, eventService: EventService, nations: FilePretenderService['nationsByGame']) {
         this.dir = dir;
         this.nationsByGame = nations;
         this.statusService = statusService;
         this.roleService = roleService;
-        this.statusService.Subscribe('newGame', this.CreatePlayersFile.bind(this))
-        this.statusService.Subscribe('deleted', this.DeletePlayersFile.bind(this))
+        this.eventService = eventService
+        this.eventService.Subscribe('newGame', this.CreatePlayersFile.bind(this))
+        this.eventService.Subscribe('deleted', this.DeletePlayersFile.bind(this))
     }
 
     private async saveToFile(gameName: string) {
