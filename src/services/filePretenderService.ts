@@ -6,15 +6,16 @@ import { PretenderService, Player } from "../types/pretenderService.js";
 import { StatusDump } from "../types/statusDump.js";
 import Status from "../types/status.js";
 import StatusDumpService from "./statusDumpService.js";
+import RoleService from "./roleService.js";
 
 export default class FilePretenderServiceBuilder {
 
-    public static async build(dir: string, statusService: StatusDumpService) {
+    public static async build(dir: string, statusService: StatusDumpService, roleService: RoleService) {
         const nationsByGame: FilePretenderService['nationsByGame'] = {}
-        Promise.all(statusService.GameNames().map(async gameName => {
+        await Promise.all(statusService.GameNames().map(async gameName => {
             nationsByGame[gameName] = await this.readFromFile(dir, gameName);
         }))
-        return new FilePretenderService(dir, statusService, nationsByGame);
+        return new FilePretenderService(dir, statusService, roleService, nationsByGame);
     }
 
     private static async readFromFile(dir: string, gameName: string | undefined): Promise<Collection<Nation['id'], Player>> {
@@ -36,14 +37,16 @@ export default class FilePretenderServiceBuilder {
 class FilePretenderService implements PretenderService {
     private nationsByGame: { [gameName: string]: Collection<Nation['id'], Player> };
     private statusService: StatusDumpService;
+    private roleService: RoleService;
     private dir: string;
 
     public static readonly filename = (gameName: string) => `${gameName}_players.json`
 
-    constructor(dir: string, statusService: StatusDumpService, nations: FilePretenderService['nationsByGame']) {
+    constructor(dir: string, statusService: StatusDumpService, roleService: RoleService, nations: FilePretenderService['nationsByGame']) {
         this.dir = dir;
         this.nationsByGame = nations;
         this.statusService = statusService;
+        this.roleService = roleService;
         this.statusService.Subscribe('newGame', this.CreatePlayersFile.bind(this))
         this.statusService.Subscribe('deleted', this.DeletePlayersFile.bind(this))
     }
@@ -72,6 +75,7 @@ class FilePretenderService implements PretenderService {
         if (!!nations.get(nation)) return false;
         nations.set(nation, { id: player.id, username: player.username });
         await this.saveToFile(gameName);
+        await this.roleService.AddRoleToUser(player.id, gameName);
         return true;
     }
 
@@ -81,6 +85,7 @@ class FilePretenderService implements PretenderService {
         if (!nation) return false;
         nations.delete(nation);
         await this.saveToFile(gameName);
+        await this.roleService.RemoveRoleFromUser(player.id, gameName);
         return true;
     }
 

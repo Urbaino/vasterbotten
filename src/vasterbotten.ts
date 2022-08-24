@@ -8,6 +8,7 @@ import NewTurnService from './services/newTurnService.js';
 import FilePretenderServiceBuilder from './services/filePretenderService.js';
 import { CommandsService } from './services/commandsService.js';
 import ChannelService from './services/channelService.js';
+import RoleService from './services/roleService.js';
 
 class Vasterbotten {
 
@@ -26,8 +27,9 @@ class Vasterbotten {
 
         // Helper services
         const dmService = new DmService(this.client);
-        const channelService = new ChannelService(this.client, this.statusService);
-        const pretenderService = await FilePretenderServiceBuilder.build(Vasterbotten.dataDir, this.statusService);
+        const roleService = new RoleService(this.client);
+        const channelService = new ChannelService(this.client, this.statusService, roleService);
+        const pretenderService = await FilePretenderServiceBuilder.build(Vasterbotten.dataDir, this.statusService, roleService);
         const newTurnService = new NewTurnService(this.statusService, pretenderService, dmService);
 
         // When the client is ready, run this code (only once)
@@ -35,6 +37,7 @@ class Vasterbotten {
             console.log('Ensuring all commands are registered');
             await new CommandsService(Vasterbotten.dataDir).ensureSubmitted()
             await channelService.SetupChannels()
+            await roleService.SetupRoles(pretenderService)
             console.log('Ready!');
         });
 
