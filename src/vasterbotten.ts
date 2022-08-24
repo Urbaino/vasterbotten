@@ -28,8 +28,8 @@ class Vasterbotten {
         // Helper services
         const dmService = new DmService(this.client);
         const roleService = new RoleService(this.client);
-        const channelService = new ChannelService(this.client, this.statusService, roleService);
         const pretenderService = await FilePretenderServiceBuilder.build(Vasterbotten.dataDir, this.statusService, roleService);
+        const channelService = new ChannelService(this.client, this.statusService, pretenderService, roleService);
         const newTurnService = new NewTurnService(this.statusService, pretenderService, dmService);
 
         // When the client is ready, run this code (only once)

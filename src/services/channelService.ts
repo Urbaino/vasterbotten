@@ -1,4 +1,7 @@
-import { Client, Guild, GuildBasedChannel, OverwriteResolvable, Snowflake, UserResolvable } from 'discord.js';
+import { bold, codeBlock } from '@discordjs/builders';
+import { Client, Guild, GuildBasedChannel, OverwriteResolvable, Snowflake } from 'discord.js';
+import { PretenderService } from '../types/pretenderService.js';
+import Status from '../types/status.js';
 import { StatusDump } from '../types/statusDump.js';
 import RoleService from './roleService.js';
 import StatusDumpService from './statusDumpService.js';
@@ -11,13 +14,16 @@ class ChannelService {
     private client: Client
     private statusService: StatusDumpService
     private roleService: RoleService
+    private pretenderService: PretenderService
 
-    constructor(client: Client, statusService: StatusDumpService, roleService: RoleService) {
+    constructor(client: Client, statusService: StatusDumpService, pretenderService: PretenderService, roleService: RoleService) {
         this.client = client;
         this.statusService = statusService;
         this.roleService = roleService;
+        this.pretenderService = pretenderService;
         this.statusService.Subscribe('newGame', this.HandleNewGame.bind(this))
         this.statusService.Subscribe('deleted', this.HandleDeleted.bind(this))
+        this.statusService.Subscribe('newTurn', this.HandleNewTurn.bind(this))
     }
 
     private async FindOrCreateCategoryChannel(guild: Guild): Promise<ChannelId> {
@@ -45,6 +51,48 @@ class ChannelService {
         }))
     }
 
+    private async HandleNewTurn(statusDump: StatusDump) {
+        const guilds = this.client.guilds.cache;
+        await Promise.all(guilds.map(async guild => {
+            await this.SetStatusMessage(statusDump, guild)
+        }))
+    }
+
+    async SetStatusMessage(statusDump: StatusDump, guild: Guild) {
+        const status = this.pretenderService.statusFromDump(statusDump);
+        if (!status) return null
+
+        const channel = guild.channels.cache.find(c => c.name === status.gameName.toLowerCase())
+        if (!channel || !channel.isText() || !this.client.user) return
+        const user = this.client.user
+        const pinnedMessages = await channel.messages.fetchPinned()
+        const statusMessage = pinnedMessages.find(m => m.author.id === user.id)
+
+        const content = this.ChannelStatusMessageContent(status)
+        if (!content) return
+
+        if (statusMessage) await statusMessage.edit(content)
+        else {
+            const m = await channel.send(content)
+            await m.pin()
+        }
+    }
+
+    private ChannelStatusMessageContent(status: Status) {
+        const content = []
+        content.push(bold(`${status.gameName}`) + ` runda ${status.turn}.`);
+
+        if (status.finishedPlayers().length) {
+            content.push('Följande spelare har genomfört sin tur:')
+            content.push(codeBlock(status.finishedPlayers().join('\n') ?? ''))
+        }
+
+        content.push('Vi väntar på:')
+        content.push(codeBlock(status.unfinishedPlayers().join('\n') ?? ''))
+
+        return content.join('\n')
+    }
+
     async SetupChannels() {
         const gameNames = this.statusService.GameNames()
         const guilds = this.client.guilds.cache;
@@ -54,6 +102,9 @@ class ChannelService {
             const channelsByGameNames: GuildBasedChannel[] = []
             await Promise.all(gameNames.map(async gameName => {
                 channelsByGameNames.push(await this.CreateChannelWithRole(gameName, guild, categoryId));
+                const status = this.statusService.Status(gameName)
+                if (!status) return
+                await this.SetStatusMessage(status, guild)
             }))
 
             const channelsWithoutGame = guild.channels.cache.filter(channel => channel.parentId === categoryId && !channelsByGameNames.find(c => c.id === channel.id))
