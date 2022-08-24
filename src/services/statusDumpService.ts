@@ -74,7 +74,7 @@ export default class StatusDumpService {
         this.GameNames().filter(game => !savedGames.includes(game)).forEach(game => {
             const status = this.status[game]
             this.DeleteStatus(game)
-            this.eventService.Raise('deleted', status)
+            this.eventService.RaiseGameEvent('deleted', status)
         })
 
         await Promise.all(savedGames.map(async save => {
@@ -82,14 +82,14 @@ export default class StatusDumpService {
             if (!newStatus) return
 
             const currentStatus = this.status[newStatus.gameName];
-            if (!currentStatus) this.eventService.Raise('newGame', newStatus)
+            if (!currentStatus) this.eventService.RaiseGameEvent('newGame', newStatus)
             else {
-                if (currentStatus.turn !== newStatus.turn) this.eventService.Raise('newTurn', newStatus)
+                if (currentStatus.turn !== newStatus.turn) this.eventService.RaiseGameEvent('newTurn', newStatus)
                 else for (let i = 0; i < currentStatus.nations.length; ++i) {
                     const currentNation = currentStatus.nations[i];
                     const newNation = newStatus.nations[i];
-                    if (currentNation.turnStatus !== newNation.turnStatus) this.eventService.Raise('turnUpdated', newStatus)
-                    if (!newStatus.turn && !currentNation.submitted && newNation.submitted) this.eventService.Raise('pretenderSubmitted', newStatus)
+                    if (currentNation.turnStatus !== newNation.turnStatus) this.eventService.RaiseGameEvent('turnUpdated', newStatus)
+                    if (!newStatus.turn && !currentNation.submitted && newNation.submitted) this.eventService.RaisePlayerEvent('pretenderSubmitted', newStatus.gameName)
                 }
             }
 

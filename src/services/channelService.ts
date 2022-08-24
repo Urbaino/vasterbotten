@@ -24,13 +24,13 @@ class ChannelService {
         this.roleService = roleService;
         this.pretenderService = pretenderService;
         this.eventService = eventService;
-        this.eventService.Subscribe('newGame', this.HandleNewGame.bind(this))
-        this.eventService.Subscribe('deleted', this.HandleDeleted.bind(this))
-        this.eventService.Subscribe('newTurn', this.HandleNewTurn.bind(this))
-        this.eventService.Subscribe('turnUpdated', this.HandleGameUpdated.bind(this))
-        this.eventService.Subscribe('pretenderSubmitted', this.HandleGameUpdated.bind(this))
-        this.eventService.Subscribe('pretenderClaimed', this.HandleGameUpdated.bind(this))
-        this.eventService.Subscribe('playerLeft', this.HandleGameUpdated.bind(this))
+        this.eventService.SubscribeToGameEvent('newGame', this.HandleNewGame.bind(this))
+        this.eventService.SubscribeToGameEvent('deleted', this.HandleDeleted.bind(this))
+        this.eventService.SubscribeToGameEvent('newTurn', this.HandleNewTurn.bind(this))
+        this.eventService.SubscribeToGameEvent('turnUpdated', this.HandleGameUpdated.bind(this))
+        this.eventService.SubscribeToPlayerEvent('pretenderSubmitted', this.HandlePlayerChange.bind(this))
+        this.eventService.SubscribeToPlayerEvent('pretenderClaimed', this.HandlePlayerChange.bind(this))
+        this.eventService.SubscribeToPlayerEvent('playerLeft', this.HandlePlayerChange.bind(this))
     }
 
     private async FindOrCreateCategoryChannel(guild: Guild): Promise<ChannelId> {
@@ -48,7 +48,7 @@ class ChannelService {
         return await Promise.all(guilds.map(async guild => {
             const categoryId = await this.FindOrCreateCategoryChannel(guild)
             await this.CreateChannelWithRole(status.gameName, guild, categoryId)
-            await this.SetStatusMessage(status, guild)
+            await this.SetStatusMessage(status.gameName, guild)
         }))
     }
 
@@ -62,19 +62,26 @@ class ChannelService {
     private async HandleNewTurn(statusDump: StatusDump) {
         const guilds = this.client.guilds.cache;
         await Promise.all(guilds.map(async guild => {
-            await this.SetStatusMessage(statusDump, guild)
+            await this.SetStatusMessage(statusDump.gameName, guild)
         }))
     }
 
     private async HandleGameUpdated(statusDump: StatusDump) {
         const guilds = this.client.guilds.cache;
         await Promise.all(guilds.map(async guild => {
-            await this.SetStatusMessage(statusDump, guild)
+            await this.SetStatusMessage(statusDump.gameName, guild)
         }))
     }
 
-    async SetStatusMessage(statusDump: StatusDump, guild: Guild) {
-        const status = this.pretenderService.statusFromDump(statusDump);
+    private async HandlePlayerChange(gameName: string) {
+        const guilds = this.client.guilds.cache;
+        await Promise.all(guilds.map(async guild => {
+            await this.SetStatusMessage(gameName, guild)
+        }))
+    }
+
+    async SetStatusMessage(gameName: string, guild: Guild) {
+        const status = this.pretenderService.status(gameName);
         if (!status) return null
 
         const channel = guild.channels.cache.find(c => c.name === status.gameName.toLowerCase())
@@ -138,9 +145,7 @@ class ChannelService {
             const channelsByGameNames: GuildBasedChannel[] = []
             await Promise.all(gameNames.map(async gameName => {
                 channelsByGameNames.push(await this.CreateChannelWithRole(gameName, guild, categoryId));
-                const status = this.statusService.Status(gameName)
-                if (!status) return
-                await this.SetStatusMessage(status, guild)
+                await this.SetStatusMessage(gameName, guild)
             }))
 
             const channelsWithoutGame = guild.channels.cache.filter(channel => channel.parentId === categoryId && !channelsByGameNames.find(c => c.id === channel.id))

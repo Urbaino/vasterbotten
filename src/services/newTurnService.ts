@@ -14,7 +14,7 @@ export default class NewTurnService {
         this.pretenderService = pretenderService;
         this.dmService = dmService;
         this.eventService = eventService;
-        this.eventService.Subscribe('newTurn', this.NotifyNewTurn.bind(this))
+        this.eventService.SubscribeToGameEvent('newTurn', this.NotifyNewTurn.bind(this))
     }
 
     private readonly messages = [

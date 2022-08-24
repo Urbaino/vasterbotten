@@ -1,17 +1,28 @@
 import EventEmitter from 'events'
 import { StatusDump } from '../types/statusDump.js'
 
-export type DominionEvents = 'newTurn' | 'deleted' | 'newGame' | 'turnUpdated' | 'pretenderSubmitted' | 'pretenderClaimed' | 'playerLeft'
+export type GameEvents = 'newTurn' | 'deleted' | 'newGame' | 'turnUpdated'
+export type PlayerEvents = 'pretenderSubmitted' | 'pretenderClaimed' | 'playerLeft'
 
 class EventService {
     private events = new EventEmitter();
 
-    public Raise(event: DominionEvents, status: StatusDump) {
+    public RaiseGameEvent(event: GameEvents, status: StatusDump) {
         console.debug(new Date(), ':', 'event', ':', event, ':', status.gameName);
         this.events.emit(event, status)
     }
 
-    public Subscribe(event: DominionEvents, listener: (status: StatusDump) => void) {
+    public SubscribeToGameEvent(event: GameEvents, listener: (status: StatusDump) => void) {
+        this.events.addListener(event, listener);
+    }
+
+
+    public RaisePlayerEvent(event: PlayerEvents, gameName: string) {
+        console.debug(new Date(), ':', 'event', ':', event, ':', gameName);
+        this.events.emit(event, gameName)
+    }
+
+    public SubscribeToPlayerEvent(event: PlayerEvents, listener: (gameName: string) => void) {
         this.events.addListener(event, listener);
     }
 }

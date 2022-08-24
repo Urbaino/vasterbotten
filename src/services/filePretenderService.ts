@@ -50,8 +50,8 @@ class FilePretenderService implements PretenderService {
         this.statusService = statusService;
         this.roleService = roleService;
         this.eventService = eventService
-        this.eventService.Subscribe('newGame', this.CreatePlayersFile.bind(this))
-        this.eventService.Subscribe('deleted', this.DeletePlayersFile.bind(this))
+        this.eventService.SubscribeToGameEvent('newGame', this.CreatePlayersFile.bind(this))
+        this.eventService.SubscribeToGameEvent('deleted', this.DeletePlayersFile.bind(this))
     }
 
     private async saveToFile(gameName: string) {
@@ -79,6 +79,7 @@ class FilePretenderService implements PretenderService {
         nations.set(nation, { id: player.id, username: player.username });
         await this.saveToFile(gameName);
         await this.roleService.AddRoleToUser(player.id, gameName);
+        this.eventService.RaisePlayerEvent('pretenderClaimed', gameName)
         return true;
     }
 
@@ -89,6 +90,7 @@ class FilePretenderService implements PretenderService {
         nations.delete(nation);
         await this.saveToFile(gameName);
         await this.roleService.RemoveRoleFromUser(player.id, gameName);
+        this.eventService.RaisePlayerEvent('playerLeft', gameName)
         return true;
     }
 
