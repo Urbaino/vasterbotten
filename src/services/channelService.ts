@@ -24,7 +24,10 @@ class ChannelService {
         this.statusService.Subscribe('newGame', this.HandleNewGame.bind(this))
         this.statusService.Subscribe('deleted', this.HandleDeleted.bind(this))
         this.statusService.Subscribe('newTurn', this.HandleNewTurn.bind(this))
-        this.statusService.Subscribe('turnUpdated', this.HandleTurnUpdated.bind(this))
+        this.statusService.Subscribe('turnUpdated', this.HandleGameUpdated.bind(this))
+        this.statusService.Subscribe('pretenderSubmitted', this.HandleGameUpdated.bind(this))
+        this.statusService.Subscribe('pretenderClaimed', this.HandleGameUpdated.bind(this))
+        this.statusService.Subscribe('playerLeft', this.HandleGameUpdated.bind(this))
     }
 
     private async FindOrCreateCategoryChannel(guild: Guild): Promise<ChannelId> {
@@ -42,6 +45,7 @@ class ChannelService {
         return await Promise.all(guilds.map(async guild => {
             const categoryId = await this.FindOrCreateCategoryChannel(guild)
             await this.CreateChannelWithRole(status.gameName, guild, categoryId)
+            await this.SetStatusMessage(status, guild)
         }))
     }
 
@@ -59,7 +63,7 @@ class ChannelService {
         }))
     }
 
-    private async HandleTurnUpdated(statusDump: StatusDump) {
+    private async HandleGameUpdated(statusDump: StatusDump) {
         const guilds = this.client.guilds.cache;
         await Promise.all(guilds.map(async guild => {
             await this.SetStatusMessage(statusDump, guild)
@@ -88,15 +92,36 @@ class ChannelService {
 
     private ChannelStatusMessageContent(status: Status) {
         const content = []
-        content.push(bold(`${status.gameName}`) + ` runda ${status.turn}.`);
+        if (status.gameStarted()) {
+            content.push(bold(`Runda ${status.turn}.`));
 
-        if (status.finishedPlayers().length) {
-            content.push('Följande spelare har genomfört sin tur:')
-            content.push(codeBlock(status.finishedPlayers().join('\n') ?? ''))
+            if (status.finishedPlayers().length) {
+                content.push('Följande spelare har genomfört sin tur:')
+                content.push(codeBlock(status.finishedPlayers().join('\n') ?? ''))
+            }
+
+            content.push('Vi väntar på:')
+            content.push(codeBlock(status.unfinishedPlayers().join('\n') ?? ''))
         }
+        else {
+            const currentPlayers = status.currentPlayers() ?? []
+            if (currentPlayers.length) {
+                content.push(`Valda pretenders:`)
+                content.push(codeBlock(currentPlayers.join('\n')))
+            }
+            else {
+                content.push('Inga pretenders valda.')
+            }
 
-        content.push('Vi väntar på:')
-        content.push(codeBlock(status.unfinishedPlayers().join('\n') ?? ''))
+            const pendingNations = status.pendingNations() ?? [];
+            if (pendingNations.length) {
+                content.push(`Kvar att välja:`)
+                content.push(codeBlock(pendingNations.join('\n')))
+            }
+            else {
+                content.push('Alla pretenders valda!')
+            }
+        }
 
         return content.join('\n')
     }
