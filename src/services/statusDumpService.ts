@@ -82,6 +82,7 @@ export default class StatusDumpService {
             if (!newStatus) return
 
             const currentStatus = this.status[newStatus.gameName];
+            this.SetStatus(newStatus.gameName, newStatus)
             if (!currentStatus) this.eventService.RaiseGameEvent('newGame', newStatus)
             else {
                 if (currentStatus.turn !== newStatus.turn) this.eventService.RaiseGameEvent('newTurn', newStatus)
@@ -92,8 +93,6 @@ export default class StatusDumpService {
                     if (!newStatus.turn && !currentNation.submitted && newNation.submitted) this.eventService.RaisePlayerEvent('pretenderSubmitted', newStatus.gameName)
                 }
             }
-
-            this.SetStatus(newStatus.gameName, newStatus)
         }));
     }
 
