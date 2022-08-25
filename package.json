@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node out/index.js",
     "prestart": "rm -rf out && npm i && tsc",
-    "test": "node --test src/"
+    "test": "npm run prestart && node --test src/"
   },
   "author": "Urbaino",
   "license": "ISC",

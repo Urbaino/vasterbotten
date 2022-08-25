@@ -86,13 +86,13 @@ class ChannelService {
 
         const channel = guild.channels.cache.find(c => c.name === status.gameName.toLowerCase())
         if (!channel || !channel.isText() || !this.client.user) return
-        const user = this.client.user
-        const pinnedMessages = await channel.messages.fetchPinned()
-        const statusMessage = pinnedMessages.find(m => m.author.id === user.id)
 
         const content = this.ChannelStatusMessageContent(status)
         if (!content) return
 
+        const user = this.client.user
+        const pinnedMessages = await channel.messages.fetchPinned()
+        const statusMessage = pinnedMessages.find(m => m.author.id === user.id)
         if (statusMessage) await statusMessage.edit(content)
         else {
             const m = await channel.send(content)
@@ -198,8 +198,23 @@ class ChannelService {
         console.debug("Deleted Game channel", name, "in guild", guild.id)
     }
 
-    async SendToChannel(name: string, message: string) {
+    private ReplaceRoleNameWithIdInTag(message: string, guild: Guild) {
+        const roleMentions = message.matchAll(/<@&([^<@&\d>]+)>/g)
+        if (!roleMentions) return message;
 
+        const replacements = []
+        for (const match of roleMentions) {
+            const tag = match[0];
+            const roleName = match[1];
+            const role = guild.roles.cache.find(r => r.name === roleName)
+            if (!role) continue
+            replacements.push({ tag, newTag: `<@&${role.id}>` })
+        }
+
+        return replacements.reduce((message, replacement) => replacement ? message.replace(replacement.tag, replacement.newTag) : message, message)
+    }
+
+    async SendToChannel(name: string, message: string) {
         const guilds = this.client.guilds.cache
         await Promise.all(guilds.map(async guild => {
 
@@ -212,7 +227,8 @@ class ChannelService {
                 console.error("Failed to send message to channel", name, "as it not a text channel in guild", guild.id)
                 return
             }
-            await channel.send(message);
+
+            await channel.send(this.ReplaceRoleNameWithIdInTag(message, guild));
         }))
 
     }

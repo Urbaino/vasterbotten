@@ -3,11 +3,13 @@ import assert from 'node:assert';
 import NewTurnService from '../../out/services/newTurnService.js'
 import { Controller } from '../../out/types/controller.js';
 
+const eventServiceStub = {
+    SubscribeToGameEvent: () => null,
+    SubscribeToPlayerEvent: () => null,
+}
+
 test('2 players left, not GameOver', (t) => {
-    const statusService = {
-        Subscribe: () => null
-    }
-    const sut = new NewTurnService(statusService, null, null,)
+    const sut = new NewTurnService(null, eventServiceStub, null, null)
 
     const status = {
         allNations: () => [
@@ -22,10 +24,7 @@ test('2 players left, not GameOver', (t) => {
 });
 
 test('Only Human left, GameOver', (t) => {
-    const statusService = {
-        Subscribe: () => null
-    }
-    const sut = new NewTurnService(statusService, null, null,)
+    const sut = new NewTurnService(null, eventServiceStub, null, null)
 
     const status = {
         allNations: () => [
@@ -40,10 +39,7 @@ test('Only Human left, GameOver', (t) => {
 });
 
 test('Only AI left, GameOver', (t) => {
-    const statusService = {
-        Subscribe: () => null
-    }
-    const sut = new NewTurnService(statusService, null, null,)
+    const sut = new NewTurnService(null, eventServiceStub, null, null)
 
     const status = {
         allNations: () => [
@@ -58,10 +54,7 @@ test('Only AI left, GameOver', (t) => {
 });
 
 test('Only same team left, GameOver', (t) => {
-    const statusService = {
-        Subscribe: () => null
-    }
-    const sut = new NewTurnService(statusService, null, null,)
+    const sut = new NewTurnService(null, eventServiceStub, null, null)
 
     const status = {
         allNations: () => [
