@@ -110,8 +110,14 @@ class ChannelService {
                 content.push(codeBlock(status.finishedPlayers().join('\n') ?? ''))
             }
 
-            content.push('Vi väntar på:')
-            content.push(codeBlock(status.unfinishedPlayers().join('\n') ?? ''))
+            const unfinishedPlayers = status.unfinishedPlayers();
+            if (unfinishedPlayers.length) {
+                content.push('Vi väntar på:')
+                content.push(codeBlock(unfinishedPlayers.join('\n') ?? ''))
+            }
+            else {
+                content.push('Alla är klara. Nästa runda beräknas...')
+            }
         }
         else {
             const currentPlayers = status.currentPlayers() ?? []

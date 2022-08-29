@@ -55,3 +55,17 @@ test('New game, avoid double message', async (t) => {
 
     assert.strictEqual(message, 'Inga pretenders valda.')
 })
+
+test('New round, show appropriate message', async (t) => {
+    const status = {
+        gameName: "Spelet",
+        gameStarted: () => true,
+        finishedPlayers: () => ["Apa", "Papa"],
+        unfinishedPlayers: () => [],
+    }
+    const sut = new ChannelService(null, null, null, null, eventService)
+
+    const message = await sut.ChannelStatusMessageContent(status);
+
+    assert.ok(message.includes('Alla är klara. Nästa runda beräknas...'))
+})
