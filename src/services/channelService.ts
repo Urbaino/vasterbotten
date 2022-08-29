@@ -128,7 +128,7 @@ class ChannelService {
                 content.push(`Kvar att välja:`)
                 content.push(codeBlock(pendingNations.join('\n')))
             }
-            else {
+            else if (currentPlayers.length) {
                 content.push('Alla pretenders valda!')
             }
         }
